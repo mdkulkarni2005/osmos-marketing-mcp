@@ -1,0 +1,157 @@
+{
+  "endpoint": {
+    "id": "create-spa-campaign",
+    "serviceId": "osmos-marketing-api",
+    "name": "Create SPA Campaign",
+    "method": "POST",
+    "path": "/{advertiser_id}/sponsored_products/legacy/campaigns",
+    "operationId": "create-spa-campaign-legacy",
+    "summary": "Create a new Sponsored Products Advertising (SPA) campaign",
+    "description": "Creates a new SPA campaign with specified budget settings, bidding strategy, and campaign type. Supports AVERAGE_DAILY_BUDGET (default) and LIFETIME_BUDGET types.",
+    "deprecated": false,
+    "parameters": [
+      {
+        "name": "advertiser_id",
+        "in": "path",
+        "required": true,
+        "type": "integer",
+        "format": "int32",
+        "description": "Osmos generated unique identifier for the onboarded advertiser."
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "contentType": "application/json",
+      "schema": {
+        "type": "object",
+        "required": ["name", "campaign_start_date", "budget_setting"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Campaign name. Allowed characters: letters, numbers, underscore, hyphen, and space.",
+            "pattern": "^[a-zA-Z0-9_\\- ]+$",
+            "maxLength": 130
+          },
+          "campaign_start_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Campaign start date. Must be today or a future date."
+          },
+          "campaign_end_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Campaign end date. Required when budget_setting.budget_type is LIFETIME_BUDGET. Must be greater than campaign_start_date."
+          },
+          "campaign_type": {
+            "type": "string",
+            "description": "Campaign type. Defaults to SMART_SHOPPING if omitted.",
+            "default": "SMART_SHOPPING",
+            "enum": ["SMART_SHOPPING", "SEARCH_ONLY"]
+          },
+          "budget_setting": {
+            "type": "object",
+            "description": "Budget settings. Field requirements depend on budget_type.",
+            "required": ["max_limit", "currency"],
+            "properties": {
+              "budget_type": {
+                "type": "string",
+                "description": "Budget type. Defaults to AVERAGE_DAILY_BUDGET.",
+                "default": "AVERAGE_DAILY_BUDGET",
+                "enum": ["AVERAGE_DAILY_BUDGET", "LIFETIME_BUDGET"]
+              },
+              "daily_budget": {
+                "type": "number",
+                "format": "float",
+                "description": "Daily budget of the campaign. Required when budget_type=AVERAGE_DAILY_BUDGET. Forbidden when budget_type=LIFETIME_BUDGET."
+              },
+              "max_limit": {
+                "type": "number",
+                "format": "float",
+                "description": "Ensures that the campaign has a maximum spend limit set. If there are any updates, the new maximum limit must always be greater than the total spend amount for that campaign since its inception. For no limit on spend, it should be set as -1"
+              },
+              "budget_pacing": {
+                "type": "string",
+                "description": "Budget pacing strategy. Allowed values depend on budget_type.",
+                "default": "ACCELERATED",
+                "enum": ["ACCELERATED", "STANDARD", "EVEN", "FRONTLOAD", "BACKLOAD"]
+              },
+              "currency": {
+                "type": "string",
+                "description": "Default currency for the campaign. The retailer's configured currency (if set at the retailer level) overrides this value at runtime.",
+                "default": "INR"
+              },
+              "daily_budget_multiplier": {
+                "type": "number",
+                "format": "float",
+                "description": "Multiplier for daily budget. Allowed only when budget_type=AVERAGE_DAILY_BUDGET. Forbidden when budget_type=LIFETIME_BUDGET. Min: 1, Max: 2.",
+                "minimum": 1,
+                "maximum": 2
+              }
+            }
+          },
+          "bidding_strategy": {
+            "type": "object",
+            "description": "Bidding strategy for the campaign. When this object is sent, type is required.",
+            "required": ["type"],
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "Bidding strategy type. Required when bidding_strategy is sent.",
+                "enum": ["MANUAL_CPC", "MAX_PERFORMANCE_CPC", "ROAS", "MAX_PERFORMANCE_CPM", "MANUAL_CPM"]
+              },
+              "value": {
+                "type": "number",
+                "format": "double",
+                "description": "Bid value. Required when type is not MAX_PERFORMANCE_CPC or MAX_PERFORMANCE_CPM. For MAX_PERFORMANCE_CPC/MAX_PERFORMANCE_CPM, defaults to 1 and only 1 is allowed."
+              }
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ACTIVE", "PAUSED", "DRAFT"]
+          },
+          "wallet_id": {
+            "type": "string",
+            "description": "Optional wallet id to associate with this campaign."
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Campaign created successfully",
+        "contentType": "application/json",
+        "example": {
+          "result": {
+            "campaign_id": "1022240",
+            "name": "test_campaign_d_external",
+            "status": "ACTIVE",
+            "campaign_type": "SMART_SHOPPING",
+            "campaign_start_date": "2025-11-20T18:39:49+05:30",
+            "campaign_end_date": "2025-12-01T16:35:30+05:30",
+            "budget_setting": {
+              "max_limit": -1,
+              "daily_budget": 2,
+              "currency": "INR",
+              "budget_pacing": "ACCELERATED",
+              "budget_type": "AVERAGE_DAILY_BUDGET",
+              "daily_budget_multiplier": 1
+            },
+            "bidding_strategy": {
+              "type": "MAX_PERFORMANCE",
+              "value": 0.1
+            }
+          },
+          "request_id": "c3b43569-02be-48a1-b660-7fee000097a3"
+        }
+      },
+      "400": {
+        "description": "Bad request - validation error",
+        "contentType": "application/json",
+        "example": {}
+      }
+    },
+    "curlExample": "curl --location --request POST \\\n  'https://apiv2.onlinesales.ai/marketing/v1/advertiser/<advertiser_id>/sponsored_products/legacy/campaigns' \\\n  --header 'accept: application/json' \\\n  --header 'content-type: application/json' \\\n  --header 'x-retailer-id: <retailer_id>' \\\n  --header 'x-token: <token>' \\\n  --data-raw '{\n    \"name\": \"Spring Sale Smart Shopping\",\n    \"campaign_type\": \"SMART_SHOPPING\",\n    \"campaign_start_date\": \"2026-04-01T00:00:00Z\",\n    \"campaign_end_date\": \"2026-04-30T23:59:59Z\",\n    \"budget_setting\": {\n      \"daily_budget\": 500,\n      \"max_limit\": 10000,\n      \"budget_pacing\": \"ACCELERATED\",\n      \"currency\": \"INR\"\n    },\n    \"bidding_strategy\": {\n      \"type\": \"MANUAL_CPC\"\n    }\n  }'",
+    "budgetTypesReference": "https://dev-hub.osmos.ai/reference/budget-pacing-and-types"
+  }
+}

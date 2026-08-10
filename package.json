@@ -1,0 +1,19 @@
+{
+  "name": "osmos-marketing-mcp",
+  "version": "1.0.0",
+  "description": "MCP server exposing the OSMOS Marketing API registry as callable tools",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "keywords": [
+    "mcp",
+    "osmos",
+    "marketing-api"
+  ],
+  "license": "ISC",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^4.4.3"
+  }
+}

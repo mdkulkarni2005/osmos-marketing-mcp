@@ -1,0 +1,146 @@
+{
+  "endpoint": {
+    "id": "create-update-positive-keyword-settings-for-campaign",
+    "serviceId": "osmos-marketing-api",
+    "name": "Create / Update Positive Keyword Settings For Campaign",
+    "method": "PUT",
+    "path": "/{advertiser_id}/sponsored_products/campaigns/{campaign_id}/keyword_settings/positive",
+    "operationId": "create-update-positive-keyword-settings-for-campaign",
+    "summary": "Create or update positive keyword settings for a campaign",
+    "description": "Creates or updates positive keyword settings for a campaign. Each keyword entry is either a create (no id) or an update (id required; keyword and match_type forbidden). To update a keyword, first fetch keywords via GET to obtain the keyword id, then update using that id.",
+    "deprecated": false,
+    "parameters": [
+      {
+        "name": "advertiser_id",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "description": "Osmos generated unique identifier for the onboarded advertiser."
+      },
+      {
+        "name": "campaign_id",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "description": "Campaign identifier."
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "contentType": "application/json",
+      "schema": {
+        "type": "object",
+        "required": ["keywords"],
+        "properties": {
+          "keywords": {
+            "type": "array",
+            "description": "List of keyword operations. Must contain at least 1 item. Each item is either a create entry (no id) or an update entry (id required; keyword and match_type forbidden).",
+            "minItems": 1,
+            "items": {
+              "oneOf": [
+                {
+                  "title": "Create Keyword",
+                  "type": "object",
+                  "description": "Use this shape to create a new keyword. Do not include id.",
+                  "required": ["keyword", "match_type", "bid_value"],
+                  "properties": {
+                    "keyword": {
+                      "type": "string",
+                      "description": "Keyword text. Max 250 characters.",
+                      "maxLength": 250,
+                      "example": "face cream"
+                    },
+                    "match_type": {
+                      "type": "string",
+                      "description": "Allowed values: BROAD; PHRASE; EXACT",
+                      "enum": ["BROAD", "PHRASE", "EXACT"],
+                      "example": "PHRASE"
+                    },
+                    "bid_value": {
+                      "type": "number",
+                      "description": "Bid value for the keyword.",
+                      "example": 2
+                    },
+                    "status": {
+                      "type": "string",
+                      "description": "ACTIVE,PAUSED",
+                      "default": "ACTIVE",
+                      "enum": ["ACTIVE", "PAUSED"],
+                      "example": "ACTIVE"
+                    }
+                  }
+                },
+                {
+                  "title": "Update Keyword",
+                  "type": "object",
+                  "description": "Use this shape to update an existing keyword. id is required; keyword and match_type are forbidden. At least one of status or bid_value must be provided alongside id.",
+                  "required": ["id"],
+                  "minProperties": 2,
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "format": "int64",
+                      "description": "Keyword ID. Obtain this from the GET endpoint.",
+                      "example": 3581013
+                    },
+                    "bid_value": {
+                      "type": "number",
+                      "description": "Updated bid value for the keyword.",
+                      "example": 2
+                    },
+                    "status": {
+                      "type": "string",
+                      "description": "ACTIVE,PAUSED",
+                      "enum": ["ACTIVE", "PAUSED"],
+                      "example": "ACTIVE"
+                    }
+                  },
+                  "anyOf": [
+                    { "required": ["status"] },
+                    { "required": ["bid_value"] }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Keyword settings updated successfully",
+        "contentType": "application/json",
+        "example": {
+          "result": {
+            "keywords": [
+              {
+                "id": 3581013,
+                "status": "ACTIVE",
+                "bidding_strategy": {
+                  "type": "CPM",
+                  "value": 2
+                }
+              }
+            ]
+          },
+          "request_id": "72c3cd9f-fa07-4e3f-a26d-aa1171fb8c64"
+        }
+      }
+    },
+    "usageWorkflow": {
+      "title": "How to Update Keyword Bid",
+      "steps": [
+        {
+          "step": 1,
+          "action": "Fetch keywords",
+          "detail": "GET /{advertiser_id}/sponsored_products/campaigns/{campaign_id}/keyword_settings/positive to retrieve keyword id. Response includes keywords with id, text, status, matchType."
+        },
+        {
+          "step": 2,
+          "action": "Update the keyword",
+          "detail": "PUT the same endpoint with the keyword id and the fields to change (status, bid_value)."
+        }
+      ]
+    }
+  }
+}

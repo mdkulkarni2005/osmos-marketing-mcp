@@ -1,0 +1,112 @@
+{
+  "endpoint": {
+    "id": "save-campaign-network-settings",
+    "serviceId": "osmos-marketing-api",
+    "name": "Save campaign network settings",
+    "method": "PUT",
+    "path": "/{advertiser_id}/sponsored_products/campaigns/{campaign_id}/network_settings",
+    "operationId": "putPlaNetworkSettings",
+    "summary": "Save the networks a Sponsored Products campaign targets",
+    "description": "Saves the networks a Sponsored Products campaign targets. Each call replaces the previously saved set; include every network the campaign should target. A campaign_id that does not exist for the advertiser returns 404 with code RESOURCE_NOT_FOUND.",
+    "deprecated": false,
+    "parameters": [
+      {
+        "name": "advertiser_id",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "pattern": "^[0-9]+$",
+        "description": "Osmos generated unique identifier for the onboarded advertiser. Carried as a string per the published SDA v1 contract; the server validates it as a number (non-numeric -> 400).",
+        "example": "1324213"
+      },
+      {
+        "name": "campaign_id",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "pattern": "^[0-9]+$",
+        "description": "Client-facing campaign-group ID. Resolved internally to the backing adgroup ID. Numeric value carried as a string per the published contract; server validates it as a number (non-numeric -> 400).",
+        "example": "504321"
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "contentType": "application/json",
+      "schema": {
+        "type": "object",
+        "required": ["networks"],
+        "properties": {
+          "networks": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 50,
+            "description": "Networks the campaign targets. Each call replaces the previously saved set.",
+            "items": {
+              "type": "object",
+              "required": ["name"],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "maxLength": 250,
+                  "pattern": "^[a-zA-Z0-9_\\- ]+$",
+                  "description": "Name of the network. A network is a retailer serving surface, such as a country-specific site or a storefront of the same retailer.",
+                  "example": "acme-retail-us"
+                }
+              }
+            }
+          }
+        }
+      },
+      "example": {
+        "networks": [
+          { "name": "acme-retail-us" },
+          { "name": "acme-retail-de" }
+        ]
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Network settings saved. The response echoes the saved networks.",
+        "contentType": "application/json",
+        "example": {
+          "result": {
+            "networks": [
+              { "name": "acme-retail-us" },
+              { "name": "acme-retail-de" }
+            ]
+          },
+          "request_id": "c7a2e9f1-4b3d-4e8a-9c6f-2d5b8a1e3f70"
+        }
+      },
+      "400": {
+        "description": "Request validation failed.",
+        "errorCodes": ["INVALID_PARAMETER", "INVALID_INPUT_REQUEST"]
+      },
+      "401": {
+        "description": "Authentication failed.",
+        "errorCodes": ["AUTHENTICATION_FAILED"]
+      },
+      "403": {
+        "description": "Authenticated but not authorized for this campaign.",
+        "errorCodes": ["ACCESS_DENIED"]
+      },
+      "404": {
+        "description": "Campaign or adgroup not found.",
+        "errorCodes": ["RESOURCE_NOT_FOUND"]
+      },
+      "429": {
+        "description": "Rate limit exceeded.",
+        "errorCodes": ["RATE_LIMIT_ERROR"]
+      },
+      "500": {
+        "description": "Server error.",
+        "errorCodes": ["TARGETING_SAVE_FAILED", "INTERNAL_SERVER_ERROR"]
+      }
+    },
+    "constraints": {
+      "replaceFullSet": true,
+      "note": "PUT overwrites the campaign's previously saved networks with the networks array in the request. To add or remove a single network, fetch the current set first, modify it, and send the complete list back.",
+      "rateLimit": "30 requests/60s per agency token"
+    }
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "endpoint": {
+    "id": "create-update-negative-keyword-settings-for-campaign",
+    "serviceId": "osmos-marketing-api",
+    "name": "Create / Update Negative Keyword Settings For Campaign",
+    "method": "PUT",
+    "path": "/{advertiser_id}/sponsored_products/campaigns/{campaign_id}/keyword_settings/negative",
+    "operationId": "create-update-negative-keyword-settings-for-campaign",
+    "summary": "Create or update negative keyword settings for a campaign",
+    "description": "Creates or updates negative keyword settings for a campaign. Each keyword entry is either a create (no id) or an update (id and status required; keyword, match_type, and bid_value forbidden). BROAD match type is not allowed for negative keywords.",
+    "deprecated": false,
+    "parameters": [
+      {
+        "name": "advertiser_id",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "description": "Osmos generated unique identifier for the onboarded advertiser."
+      },
+      {
+        "name": "campaign_id",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "description": "Campaign identifier."
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "contentType": "application/json",
+      "schema": {
+        "type": "object",
+        "required": ["keywords"],
+        "properties": {
+          "keywords": {
+            "type": "array",
+            "description": "List of negative-keyword operations. Must contain at least 1 item. Each item is either a create entry (no id) or an update entry (id required; keyword, match_type, and bid_value forbidden).",
+            "minItems": 1,
+            "items": {
+              "oneOf": [
+                {
+                  "title": "Create Negative Keyword",
+                  "type": "object",
+                  "description": "Use this shape to create a new negative keyword. Do not include id.",
+                  "required": ["keyword", "match_type"],
+                  "properties": {
+                    "keyword": {
+                      "type": "string",
+                      "description": "Negative keyword text."
+                    },
+                    "match_type": {
+                      "type": "string",
+                      "description": "Allowed values: PHRASE; EXACT. BROAD is not allowed for negative keywords.",
+                      "enum": ["PHRASE", "EXACT"]
+                    },
+                    "status": {
+                      "type": "string",
+                      "description": "ACTIVE,PAUSED",
+                      "default": "ACTIVE",
+                      "enum": ["ACTIVE", "PAUSED"]
+                    }
+                  }
+                },
+                {
+                  "title": "Update Negative Keyword",
+                  "type": "object",
+                  "description": "Use this shape to update an existing negative keyword. id and status are required; keyword, match_type, and bid_value are forbidden.",
+                  "required": ["id", "status"],
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "format": "int64",
+                      "description": "Negative keyword ID. Obtain this from the GET endpoint."
+                    },
+                    "status": {
+                      "type": "string",
+                      "description": "ACTIVE,PAUSED",
+                      "enum": ["ACTIVE", "PAUSED"]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Negative keyword settings updated successfully",
+        "contentType": "application/json",
+        "example": {
+          "keywords": [
+            {
+              "id": "389239",
+              "keyword": "face cream",
+              "match_type": "PHRASE",
+              "status": "ACTIVE",
+              "bid_value": 5,
+              "is_negative": false
+            },
+            {
+              "id": "387392",
+              "keyword": "shampoo",
+              "match_type": "EXACT",
+              "status": "ACTIVE",
+              "bid_value": 3,
+              "is_negative": false
+            }
+          ],
+          "mode": "MANUAL"
+        }
+      }
+    },
+    "curlExample": "curl --location --request PUT 'https://api.onlinesales.ai/marketing/v1/advertiser/<advertiser_id>/sponsored_products/campaigns/<campaign_id>/keyword_settings/negative' \\\n--header 'x-token: <ADD YOUR AUTH TOKEN HERE>' \\\n--header 'x-retailer-id: <ADD RETAILER-ID HERE>' \\\n--header 'Content-Type: application/json' \\\n--data '{\n    \"keywords\": [\n        {\n            \"keyword\": \"<add your keyword here>\",\n            \"match_type\": \"PHRASE\",\n            \"status\": \"ACTIVE\",\n            \"bid_value\": 2\n        }\n    ]\n}'"
+  }
+}

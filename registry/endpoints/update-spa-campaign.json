@@ -1,0 +1,157 @@
+{
+  "endpoint": {
+    "id": "update-spa-campaign",
+    "serviceId": "osmos-marketing-api",
+    "name": "Update SPA Campaign",
+    "method": "PUT",
+    "path": "/{advertiser_id}/sponsored_products/legacy/campaigns/{campaign_id}",
+    "operationId": "update-spa-campaign-legacy",
+    "summary": "Update an existing SPA campaign",
+    "description": "All fields are optional — send only the fields you want to change. To change the campaign's bidding strategy, send bidding_strategy.type. Switches are only allowed within the same bid-mode family — CPC family: MANUAL_CPC, MAX_PERFORMANCE_CPC, ROAS; CPM family: MANUAL_CPM, MAX_PERFORMANCE_CPM. Switching between the CPC and CPM families returns a 400 error. Budget type cannot be changed after creation.",
+    "deprecated": false,
+    "parameters": [
+      {
+        "name": "advertiser_id",
+        "in": "path",
+        "required": true,
+        "type": "integer",
+        "format": "int32",
+        "description": "Osmos generated unique identifier for the onboarded advertiser."
+      },
+      {
+        "name": "campaign_id",
+        "in": "path",
+        "required": true,
+        "type": "integer",
+        "format": "int32",
+        "description": "Campaign identifier."
+      }
+    ],
+    "requestBody": {
+      "required": false,
+      "contentType": "application/json",
+      "schema": {
+        "type": "object",
+        "description": "All fields are optional on update. Provide only the fields you want to change.",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Campaign name. Allowed characters: letters, numbers, underscore, hyphen, and space.",
+            "pattern": "^[a-zA-Z0-9_\\- ]+$",
+            "maxLength": 130
+          },
+          "campaign_start_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Campaign start date. Must be today or a future date. Format ISO 8601"
+          },
+          "campaign_end_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Campaign end date. Must be today or a future date. Format ISO 8601"
+          },
+          "bidding_strategy": {
+            "type": "object",
+            "description": "Bidding strategy update. Send type to change the bidding strategy, value to change the bid, or both.",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "New bidding strategy type. Switches are only allowed within the same bid-mode family (CPC family: MANUAL_CPC, MAX_PERFORMANCE_CPC, ROAS; CPM family: MANUAL_CPM, MAX_PERFORMANCE_CPM). Switching between the CPC and CPM families returns a 400 error.",
+                "enum": ["MANUAL_CPC", "MAX_PERFORMANCE_CPC", "ROAS", "MAX_PERFORMANCE_CPM", "MANUAL_CPM"]
+              },
+              "value": {
+                "type": "number",
+                "format": "double",
+                "description": "Bid value. Required when type is not MAX_PERFORMANCE_CPC or MAX_PERFORMANCE_CPM; for those types, only 1 is allowed. When sent together with type, the value is validated against the bid limits of the new (target) strategy, not the current one."
+              }
+            }
+          },
+          "budget_setting": {
+            "type": "object",
+            "description": "Budget update fields. All sub-fields are optional on update; budget_type cannot be changed after creation.",
+            "properties": {
+              "daily_budget": {
+                "type": "number",
+                "format": "float",
+                "description": "Daily budget of the campaign."
+              },
+              "max_limit": {
+                "type": "number",
+                "format": "float",
+                "description": "Ensures that the campaign has a maximum spend limit set. If there are any updates, the new maximum limit must always be greater than the total spend amount for that campaign since its inception. For no limit on spend, it should be set as -1"
+              },
+              "budget_pacing": {
+                "type": "string",
+                "description": "Budget pacing strategy. Allowed values depend on the campaign's budget_type: AVERAGE_DAILY_BUDGET: ACCELERATED, STANDARD, EVEN; LIFETIME_BUDGET: FRONTLOAD, BACKLOAD, ACCELERATED, EVEN.",
+                "default": "ACCELERATED",
+                "enum": ["ACCELERATED", "STANDARD", "EVEN", "FRONTLOAD", "BACKLOAD"]
+              },
+              "currency": {
+                "type": "string",
+                "description": "Default currency for the campaign. The retailer's configured currency (if set at the retailer level) overrides this value at runtime.",
+                "default": "INR"
+              },
+              "daily_budget_multiplier": {
+                "type": "number",
+                "format": "float",
+                "description": "Multiplier for daily budget. Only valid when the campaign's budget_type=AVERAGE_DAILY_BUDGET. Min: 1, Max: 2.",
+                "minimum": 1,
+                "maximum": 2
+              }
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ACTIVE", "PAUSED"]
+          },
+          "wallet_id": {
+            "type": "string",
+            "description": "Optional wallet id to associate with this campaign."
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Campaign updated successfully",
+        "contentType": "application/json",
+        "example": {
+          "result": {
+            "campaign_id": "1022240",
+            "name": "test_campaign_d_external",
+            "status": "ACTIVE",
+            "campaign_type": "SMART_SHOPPING",
+            "campaign_start_date": "2025-11-20T18:39:49+05:30",
+            "campaign_end_date": "2025-12-01T16:35:30+05:30",
+            "budget_setting": {
+              "max_limit": -1,
+              "daily_budget": 2,
+              "currency": "INR",
+              "budget_pacing": "ACCELERATED",
+              "daily_budget_multiplier": 1
+            },
+            "bidding_strategy": {
+              "type": "MAX_PERFORMANCE",
+              "value": 0.1
+            }
+          },
+          "request_id": "c3b43569-02be-48a1-b660-7fee000097a3"
+        }
+      },
+      "400": {
+        "description": "Bad request - validation error (e.g., bidding strategy family change not allowed)",
+        "contentType": "application/json",
+        "example": {}
+      }
+    },
+    "constraints": {
+      "budgetTypeImmutable": true,
+      "biddingStrategyFamilyImmutable": true,
+      "biddingStrategyFamilies": {
+        "CPC": ["MANUAL_CPC", "MAX_PERFORMANCE_CPC", "ROAS"],
+        "CPM": ["MANUAL_CPM", "MAX_PERFORMANCE_CPM"]
+      }
+    },
+    "budgetTypesReference": "https://dev-hub.osmos.ai/reference/budget-pacing-and-types"
+  }
+}

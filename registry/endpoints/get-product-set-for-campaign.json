@@ -1,0 +1,51 @@
+{
+  "endpoint": {
+    "id": "get-product-set-for-campaign",
+    "serviceId": "osmos-marketing-api",
+    "name": "Get Product Set For Campaign",
+    "method": "GET",
+    "path": "/{advertiser_id}/sponsored_products/campaigns/{campaign_id}/product_sets",
+    "operationId": "get-product-set-for-campaign",
+    "summary": "Retrieve the product set for a campaign",
+    "description": "Returns the product set configured for a campaign. Response is either a MANUAL product set (with explicit product list) or an AUTO product set.",
+    "deprecated": false,
+    "parameters": [
+      {
+        "name": "advertiser_id",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "description": "Osmos generated unique identifier for the onboarded advertiser."
+      },
+      {
+        "name": "campaign_id",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "description": "Campaign identifier."
+      }
+    ],
+    "requestBody": {
+      "required": false
+    },
+    "responses": {
+      "200": {
+        "description": "Product set retrieved successfully",
+        "contentType": "application/json",
+        "examples": {
+          "manualProductSet": {
+            "product_set": {
+              "products": ["749yhd78", "209urh33", "289nkd84"],
+              "mode": "MANUAL"
+            }
+          },
+          "autoProductSet": {
+            "product_set": {
+              "mode": "AUTO"
+            }
+          }
+        }
+      }
+    }
+  }
+}

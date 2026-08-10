@@ -1,0 +1,43 @@
+{
+  "service": {
+    "id": "osmos-marketing-api",
+    "name": "OSMOS Marketing API",
+    "description": "Marketing Campaign API for managing advertiser campaigns, product ads, and keywords",
+    "baseUrl": "https://apiv2.onlinesales.ai/marketing/v1/advertiser",
+    "documentationUrl": "https://dev-hub.osmos.ai/reference/understanding-campaign-hierarchy",
+    "llmsTxtUrl": "https://dev-hub.osmos.ai/llms.txt",
+    "authentication": {
+      "type": "dual-header",
+      "headers": [
+        {
+          "name": "x-token",
+          "description": "Authentication token. Required. Send alongside x-retailer-id on every request."
+        },
+        {
+          "name": "x-retailer-id",
+          "description": "Retailer identifier. Required. Send alongside x-token on every request."
+        }
+      ]
+    },
+    "hierarchy": {
+      "levels": [
+        {
+          "level": 1,
+          "name": "Advertisers",
+          "description": "Entities that create and manage specific advertising campaigns. They operate within the framework provided by Retailers and collaborate with Demand Partners or directly with Retailer to reach their target audience effectively."
+        },
+        {
+          "level": 2,
+          "name": "Campaigns",
+          "description": "Advertisers define specific campaigns, each with its own unique set of objectives, targeting parameters, and creative assets. Campaigns are the actionable units that drive advertising initiatives."
+        },
+        {
+          "level": 3,
+          "name": "Product Ads & Keywords",
+          "description": "The lowest level in the hierarchy. Product Ads represent the actual advertisements displayed to users, while Keywords are used for targeting specific audience segments."
+        }
+      ],
+      "exampleScenario": "A Retailer (e.g., an online marketplace) collaborates with Demand Partners (advertising platforms) to facilitate advertising opportunities. Advertisers define specific Campaigns with unique objectives and creative assets. Each Campaign may include Product Ads, representing the actual advertisements displayed to users, and Keywords, specifying the target audience for the ads."
+    }
+  }
+}

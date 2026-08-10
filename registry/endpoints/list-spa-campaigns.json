@@ -1,0 +1,111 @@
+{
+  "endpoint": {
+    "id": "list-spa-campaigns",
+    "serviceId": "osmos-marketing-api",
+    "name": "List SPA Campaigns",
+    "method": "GET",
+    "path": "/{advertiser_id}/sponsored_products/legacy/campaigns",
+    "operationId": "list-spa-campaigns-legacy",
+    "summary": "List all SPA campaigns for an advertiser with pagination and optional status filter",
+    "description": "Returns a paginated list of campaigns. Supports filtering by status (ACTIVE, PAUSED). Offset and limit are required for pagination.",
+    "deprecated": false,
+    "parameters": [
+      {
+        "name": "advertiser_id",
+        "in": "path",
+        "required": true,
+        "type": "integer",
+        "format": "int32",
+        "description": "Osmos generated unique identifier for the onboarded advertiser."
+      },
+      {
+        "name": "offset",
+        "in": "query",
+        "required": true,
+        "type": "integer",
+        "format": "int32",
+        "minimum": 0,
+        "description": "Pagination offset."
+      },
+      {
+        "name": "limit",
+        "in": "query",
+        "required": true,
+        "type": "integer",
+        "format": "int32",
+        "minimum": 1,
+        "maximum": 50,
+        "description": "Maximum number of campaigns to return. Must be greater than 0 and less than or equal to 50."
+      },
+      {
+        "name": "status",
+        "in": "query",
+        "required": false,
+        "type": "string",
+        "enum": ["ACTIVE", "PAUSED"],
+        "description": "Filter campaigns by status."
+      }
+    ],
+    "requestBody": {
+      "required": false
+    },
+    "responses": {
+      "200": {
+        "description": "Campaigns retrieved successfully",
+        "contentType": "application/json",
+        "example": {
+          "result": {
+            "campaigns": [
+              {
+                "campaign_id": "861230",
+                "name": "All Products (2nd Mar | 21:59)",
+                "status": "DRAFT",
+                "campaign_type": "SMART_SHOPPING",
+                "campaign_start_date": "2025-03-02T21:59:46+05:30",
+                "campaign_end_date": "2036-02-02T05:30:00+05:30",
+                "budget_setting": {
+                  "daily_budget": 2,
+                  "currency": "INR",
+                  "max_limit": -1,
+                  "budget_pacing": "ACCELERATED",
+                  "budget_type": "AVERAGE_DAILY_BUDGET",
+                  "daily_budget_multiplier": 1
+                },
+                "bidding_strategy": {
+                  "type": "MANUAL_CPC",
+                  "value": 1
+                }
+              },
+              {
+                "campaign_id": "861231",
+                "name": "All Products (3rd Mar | 11:01)",
+                "status": "DRAFT",
+                "campaign_type": "SMART_SHOPPING",
+                "campaign_start_date": "2025-03-03T11:01:20+05:30",
+                "campaign_end_date": "2036-02-02T05:30:00+05:30",
+                "budget_setting": {
+                  "daily_budget": 1,
+                  "currency": "INR",
+                  "max_limit": -1,
+                  "budget_pacing": "ACCELERATED",
+                  "budget_type": "AVERAGE_DAILY_BUDGET",
+                  "daily_budget_multiplier": 1
+                },
+                "bidding_strategy": {
+                  "type": "MANUAL_CPC",
+                  "value": 0.0001
+                }
+              }
+            ]
+          },
+          "request_id": "d7321ec3-8120-4eee-ab75-8095da282fa5"
+        }
+      },
+      "400": {
+        "description": "Bad request - validation error",
+        "contentType": "application/json",
+        "example": {}
+      }
+    }
+  }
+}

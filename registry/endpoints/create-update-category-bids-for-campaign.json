@@ -1,0 +1,100 @@
+{
+  "endpoint": {
+    "id": "create-update-category-bids-for-campaign",
+    "serviceId": "osmos-marketing-api",
+    "name": "Create / Update Category Bids For Campaign",
+    "method": "PUT",
+    "path": "/{advertiser_id}/sponsored_products/campaigns/{campaign_id}/category_bid_setting",
+    "operationId": "create-update-category-bids-for-campaign",
+    "summary": "Create or update category bids for a campaign",
+    "description": "Creates or updates the category bid settings for a campaign. When mode=MANUAL, the category_bids array is required. When mode=AUTO, the category_bids array is forbidden.",
+    "deprecated": false,
+    "parameters": [
+      {
+        "name": "advertiser_id",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "description": "Osmos generated unique identifier for the onboarded advertiser."
+      },
+      {
+        "name": "campaign_id",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "description": "Campaign identifier."
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "contentType": "application/json",
+      "schema": {
+        "type": "object",
+        "required": ["category_bid_setting"],
+        "properties": {
+          "category_bid_setting": {
+            "type": "object",
+            "required": ["mode"],
+            "properties": {
+              "mode": {
+                "type": "string",
+                "description": "When MANUAL, the category_bids array is required. When AUTO, the category_bids array is forbidden.",
+                "default": "AUTO",
+                "enum": ["AUTO", "MANUAL"]
+              },
+              "category_bids": {
+                "type": "array",
+                "description": "List of category bids. Required when mode=MANUAL; forbidden when mode=AUTO.",
+                "items": {
+                  "type": "object",
+                  "required": ["category_value", "bid_value", "is_active"],
+                  "properties": {
+                    "category_value": {
+                      "type": "string",
+                      "description": "Category path value."
+                    },
+                    "bid_value": {
+                      "type": "number",
+                      "format": "float",
+                      "nullable": true,
+                      "description": "Bid value for this category. Must be greater than 0 when is_active=true; must be null when is_active=false."
+                    },
+                    "is_active": {
+                      "type": "boolean",
+                      "description": "Whether this category bid is active."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Category bids created or updated successfully",
+        "contentType": "application/json",
+        "example": {
+          "category_bid_set": {
+            "mode": "MANUAL",
+            "category_bids": [
+              {
+                "category_value": "Frozen > Frozen Desserts > Frozen Yogurt",
+                "bid_value": 14,
+                "is_active": true
+              }
+            ]
+          },
+          "request_id": "1e00d6a1-44b2-4322-b05d-452b108d1fe2"
+        }
+      },
+      "400": {
+        "description": "Bad request - validation error",
+        "contentType": "application/json",
+        "example": {}
+      }
+    },
+    "curlExample": "curl --location --request PUT 'https://api.onlinesales.ai/marketing/v1/advertiser/<advertiser_id>/sponsored_products/campaigns/<campaign_id>/category_bid_setting' \\\n--header 'x-retailer-id: <ADD RETAILER-ID HERE>' \\\n--header 'x-token: <ADD YOUR AUTH TOKEN HERE>' \\\n--header 'Content-Type: application/json' \\\n--data '{\n    \"category_bid_setting\": {\n        \"mode\": \"MANUAL\",\n        \"category_bids\": [\n            {\n                \"category_value\": \"Frozen > Frozen Desserts > Frozen Yogurt\",\n                \"bid_value\": 14,\n                \"is_active\": true\n            }\n        ]\n    }\n}'"
+  }
+}

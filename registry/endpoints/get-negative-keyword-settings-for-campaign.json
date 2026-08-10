@@ -1,0 +1,38 @@
+{
+  "endpoint": {
+    "id": "get-negative-keyword-settings-for-campaign",
+    "serviceId": "osmos-marketing-api",
+    "name": "Get Negative Keyword Settings For Campaign",
+    "method": "GET",
+    "path": "/{advertiser_id}/sponsored_products/campaigns/{campaign_id}/keyword_settings/negative",
+    "operationId": "get-negative-keyword-settings-for-campaign",
+    "summary": "Retrieve the negative keyword settings for a campaign",
+    "description": "Returns the list of negative keywords for a campaign. Use this endpoint to fetch negative keyword ids before updating their status.",
+    "deprecated": false,
+    "parameters": [
+      {
+        "name": "advertiser_id",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "description": "Osmos generated unique identifier for the onboarded advertiser."
+      },
+      {
+        "name": "campaign_id",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "description": "Campaign identifier."
+      }
+    ],
+    "requestBody": {
+      "required": false
+    },
+    "responses": {
+      "200": {
+        "description": "Negative keyword settings retrieved successfully",
+        "contentType": "application/json"
+      }
+    }
+  }
+}

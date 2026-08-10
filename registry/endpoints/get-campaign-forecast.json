@@ -1,0 +1,63 @@
+{
+  "endpoint": {
+    "id": "get-campaign-forecast",
+    "serviceId": "osmos-marketing-api",
+    "name": "Get Campaign Forecast",
+    "method": "POST",
+    "path": "/{advertiser_id}/sponsored_products/campaigns/{campaign_id}/forecast",
+    "operationId": "get-spa-campaign-forecast",
+    "summary": "Get forecast for a campaign",
+    "description": "Returns the forecast for a campaign based on its current or overridden budget. Forecasting is not supported for LIFETIME_BUDGET campaigns.",
+    "deprecated": false,
+    "parameters": [
+      {
+        "name": "advertiser_id",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "description": "Osmos generated unique identifier for the onboarded advertiser."
+      },
+      {
+        "name": "campaign_id",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "description": "Campaign identifier."
+      }
+    ],
+    "requestBody": {
+      "required": false,
+      "contentType": "application/json",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "budget": {
+            "type": "object",
+            "description": "Budget overrides used for the forecast. When this object is sent, daily_budget is required.",
+            "required": ["daily_budget"],
+            "properties": {
+              "daily_budget": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Forecast retrieved successfully",
+        "contentType": "application/json"
+      },
+      "400": {
+        "description": "Bad request - validation error",
+        "contentType": "application/json"
+      }
+    },
+    "constraints": {
+      "forecastNotSupportedForLifetimeBudget": true,
+      "note": "Forecasting is not supported for LIFETIME_BUDGET campaigns. See Budget Pacing & Types for details."
+    }
+  }
+}

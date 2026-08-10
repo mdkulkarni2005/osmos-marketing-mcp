@@ -1,0 +1,69 @@
+{
+  "endpoint": {
+    "id": "get-category-bids-for-campaign",
+    "serviceId": "osmos-marketing-api",
+    "name": "Get Category Bids For Campaign",
+    "method": "GET",
+    "path": "/{advertiser_id}/sponsored_products/campaigns/{campaign_id}/category_bid_setting",
+    "operationId": "get-category-bids-for-campaign",
+    "summary": "Retrieve the category bids for a campaign",
+    "description": "Returns the list of category bids for a campaign, including spend, revenue, ROI, current bid value, and allowed/recommended bid ranges.",
+    "deprecated": false,
+    "parameters": [
+      {
+        "name": "advertiser_id",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "description": "Osmos generated unique identifier for the onboarded advertiser."
+      },
+      {
+        "name": "campaign_id",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "description": "Campaign identifier."
+      }
+    ],
+    "requestBody": {
+      "required": false
+    },
+    "responses": {
+      "200": {
+        "description": "Category bids retrieved successfully",
+        "contentType": "application/json",
+        "example": {
+          "category_bids": [
+            {
+              "category_value": "Frozen > Frozen Desserts > Frozen Yogurt",
+              "spend": 0,
+              "revenue": 0,
+              "roi": 0,
+              "bid_value": 11,
+              "max_allowed": 15,
+              "min_allowed": 10,
+              "min_recommended": 10,
+              "max_recommended": 10.5
+            },
+            {
+              "category_value": "Frozen > Frozen Desserts > Ice Cream",
+              "spend": 0,
+              "revenue": 0,
+              "roi": 0,
+              "bid_value": 10,
+              "max_allowed": 15,
+              "min_allowed": 10,
+              "min_recommended": 10,
+              "max_recommended": 10.5
+            }
+          ]
+        }
+      },
+      "400": {
+        "description": "Bad request - validation error",
+        "contentType": "application/json",
+        "example": {}
+      }
+    }
+  }
+}

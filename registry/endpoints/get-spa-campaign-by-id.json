@@ -1,0 +1,68 @@
+{
+  "endpoint": {
+    "id": "get-spa-campaign-by-id",
+    "serviceId": "osmos-marketing-api",
+    "name": "Get SPA Campaign by ID",
+    "method": "GET",
+    "path": "/{advertiser_id}/sponsored_products/legacy/campaigns/{campaign_id}",
+    "operationId": "get-spa-campaign-by-id-legacy",
+    "summary": "Retrieve a specific SPA campaign by its ID",
+    "description": "Returns the campaign details including budget settings, bidding strategy, dates, and status.",
+    "deprecated": false,
+    "parameters": [
+      {
+        "name": "advertiser_id",
+        "in": "path",
+        "required": true,
+        "type": "integer",
+        "format": "int32",
+        "description": "Osmos generated unique identifier for the onboarded advertiser."
+      },
+      {
+        "name": "campaign_id",
+        "in": "path",
+        "required": true,
+        "type": "integer",
+        "format": "int32",
+        "description": "Campaign identifier."
+      }
+    ],
+    "requestBody": {
+      "required": false
+    },
+    "responses": {
+      "200": {
+        "description": "Campaign retrieved successfully",
+        "contentType": "application/json",
+        "example": {
+          "result": {
+            "campaign_id": "1022240",
+            "name": "test_campaign_d_external",
+            "status": "ACTIVE",
+            "campaign_type": "SMART_SHOPPING",
+            "campaign_start_date": "2025-11-20T18:39:49+05:30",
+            "campaign_end_date": "2025-12-01T16:35:30+05:30",
+            "budget_setting": {
+              "max_limit": -1,
+              "daily_budget": 2,
+              "currency": "INR",
+              "budget_pacing": "ACCELERATED",
+              "budget_type": "AVERAGE_DAILY_BUDGET",
+              "daily_budget_multiplier": 1
+            },
+            "bidding_strategy": {
+              "type": "MAX_PERFORMANCE",
+              "value": 0.1
+            }
+          },
+          "request_id": "c3b43569-02be-48a1-b660-7fee000097a3"
+        }
+      },
+      "400": {
+        "description": "Bad request - validation error",
+        "contentType": "application/json",
+        "example": {}
+      }
+    }
+  }
+}

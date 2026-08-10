@@ -1,0 +1,79 @@
+{
+  "endpoint": {
+    "id": "get-campaign-network-settings",
+    "serviceId": "osmos-marketing-api",
+    "name": "Get campaign network settings",
+    "method": "GET",
+    "path": "/{advertiser_id}/sponsored_products/campaigns/{campaign_id}/network_settings",
+    "operationId": "getPlaNetworkSettings",
+    "summary": "Get the networks a Sponsored Products campaign targets",
+    "description": "Returns the networks a Sponsored Products campaign targets. A network is a retailer serving surface, such as a country-specific site or a storefront of the same retailer. A campaign with no saved network settings returns an empty networks array.",
+    "deprecated": false,
+    "parameters": [
+      {
+        "name": "advertiser_id",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "pattern": "^[0-9]+$",
+        "description": "Osmos generated unique identifier for the onboarded advertiser. Carried as a string per the published SDA v1 contract; the server validates it as a number (non-numeric -> 400).",
+        "example": "1324213"
+      },
+      {
+        "name": "campaign_id",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "pattern": "^[0-9]+$",
+        "description": "Client-facing campaign-group ID. Resolved internally to the backing adgroup ID. Numeric value carried as a string per the published contract; server validates it as a number (non-numeric -> 400).",
+        "example": "504321"
+      }
+    ],
+    "requestBody": {
+      "required": false
+    },
+    "responses": {
+      "200": {
+        "description": "Currently saved networks.",
+        "contentType": "application/json",
+        "example": {
+          "result": {
+            "networks": [
+              { "name": "acme-retail-us" },
+              { "name": "acme-retail-de" }
+            ]
+          },
+          "request_id": "c7a2e9f1-4b3d-4e8a-9c6f-2d5b8a1e3f70"
+        }
+      },
+      "400": {
+        "description": "Request validation failed.",
+        "errorCodes": ["INVALID_PARAMETER", "INVALID_INPUT_REQUEST"]
+      },
+      "401": {
+        "description": "Authentication failed.",
+        "errorCodes": ["AUTHENTICATION_FAILED"]
+      },
+      "403": {
+        "description": "Authenticated but not authorized for this campaign.",
+        "errorCodes": ["ACCESS_DENIED"]
+      },
+      "404": {
+        "description": "Campaign or adgroup not found.",
+        "errorCodes": ["RESOURCE_NOT_FOUND"]
+      },
+      "429": {
+        "description": "Rate limit exceeded.",
+        "errorCodes": ["RATE_LIMIT_ERROR"]
+      },
+      "500": {
+        "description": "Server error.",
+        "errorCodes": ["TARGETING_SAVE_FAILED", "INTERNAL_SERVER_ERROR"]
+      }
+    },
+    "constraints": {
+      "rateLimit": "30 requests/60s per agency token",
+      "emptyResponseNote": "A campaign with no saved network settings returns an empty networks array."
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "endpoint": {
+    "id": "get-positive-keyword-settings-for-campaign",
+    "serviceId": "osmos-marketing-api",
+    "name": "Get Positive Keyword Settings For Campaign",
+    "method": "GET",
+    "path": "/{advertiser_id}/sponsored_products/campaigns/{campaign_id}/keyword_settings/positive",
+    "operationId": "get-positive-keyword-settings-for-campaign",
+    "summary": "Retrieve the positive keyword settings for a campaign",
+    "description": "Returns the list of positive keywords for a campaign. Use this endpoint to fetch keyword ids before updating keyword bids or status.",
+    "deprecated": false,
+    "parameters": [
+      {
+        "name": "advertiser_id",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "description": "Osmos generated unique identifier for the onboarded advertiser."
+      },
+      {
+        "name": "campaign_id",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "description": "Campaign identifier."
+      }
+    ],
+    "requestBody": {
+      "required": false
+    },
+    "responses": {
+      "200": {
+        "description": "Positive keyword settings retrieved successfully",
+        "contentType": "application/json",
+        "example": {
+          "keywords": [
+            {
+              "id": 2447111,
+              "text": "ice cream",
+              "status": "ACTIVE",
+              "matchType": "BROAD"
+            },
+            {
+              "id": 2447112,
+              "text": "yogurt",
+              "status": "ACTIVE",
+              "matchType": "BROAD"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

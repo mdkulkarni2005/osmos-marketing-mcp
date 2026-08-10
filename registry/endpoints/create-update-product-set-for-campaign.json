@@ -1,0 +1,80 @@
+{
+  "endpoint": {
+    "id": "create-update-product-set-for-campaign",
+    "serviceId": "osmos-marketing-api",
+    "name": "Create / Update Product Set For Campaign",
+    "method": "PUT",
+    "path": "/{advertiser_id}/sponsored_products/campaigns/{campaign_id}/product_sets",
+    "operationId": "create-update-product-set-for-campaign",
+    "summary": "Create or update the product set for a campaign",
+    "description": "Creates or updates the product set for a campaign. When products are selected within product sets, each product will function as an individual product ad. Supports AUTO mode (backend auto-selects products) and MANUAL mode (explicit product list).",
+    "deprecated": false,
+    "parameters": [
+      {
+        "name": "advertiser_id",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "description": "Osmos generated unique identifier for the onboarded advertiser."
+      },
+      {
+        "name": "campaign_id",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "description": "Campaign identifier."
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "contentType": "application/json",
+      "schema": {
+        "type": "object",
+        "required": ["product_set"],
+        "properties": {
+          "product_set": {
+            "type": "object",
+            "description": "When products are selected within product sets, each product will function as an individual product ad.",
+            "required": ["mode"],
+            "properties": {
+              "mode": {
+                "type": "string",
+                "description": "In case of AUTO, the products array is forbidden. When set to MANUAL, products is required.",
+                "default": "AUTO",
+                "enum": ["AUTO", "MANUAL"]
+              },
+              "products": {
+                "type": "array",
+                "description": "List of product ids. Required when mode=MANUAL and forbidden when mode=AUTO. The array has minimum and maximum size limits enforced by the backend.",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Product set created or updated successfully",
+        "contentType": "application/json",
+        "examples": {
+          "manualProductSet": {
+            "product_set": {
+              "products": ["749yhd78", "209urh33", "289nkd84"],
+              "mode": "MANUAL"
+            }
+          },
+          "autoProductSet": {
+            "product_set": {
+              "mode": "AUTO"
+            }
+          }
+        }
+      }
+    },
+    "curlExample": "curl --location --request PUT 'https://api.onlinesales.ai/marketing/v1/advertiser/<advertiser_id>/sponsored_products/campaigns/<campaign_id>/product_sets' \\\n--header 'x-retailer-id: <ADD RETAILER-ID HERE>' \\\n--header 'x-token: <ADD YOUR AUTH TOKEN HERE>' \\\n--header 'Content-Type: application/json' \\\n--data '{\n    \"product_set\": {\n        \"mode\": \"MANUAL\",\n        \"products\": [\n            \"product_id_1\",\n            \"product_id_2\"\n        ]\n    }\n}'"
+  }
+}

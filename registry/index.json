@@ -1,0 +1,13 @@
+{
+  "registry": {
+    "version": "1.0",
+    "services": [
+      {
+        "id": "osmos-marketing-api",
+        "name": "OSMOS Marketing API",
+        "serviceFile": "service/service.json",
+        "endpointsIndex": "endpoints/index.json"
+      }
+    ]
+  }
+}

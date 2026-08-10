@@ -1,0 +1,113 @@
+{
+  "serviceIndex": {
+    "serviceId": "osmos-marketing-api",
+    "version": "1.0",
+    "endpoints": [
+      {
+        "id": "create-spa-campaign",
+        "file": "create-spa-campaign.json",
+        "method": "POST",
+        "path": "/{advertiser_id}/sponsored_products/legacy/campaigns",
+        "summary": "Create a new Sponsored Products Advertising (SPA) campaign"
+      },
+      {
+        "id": "list-spa-campaigns",
+        "file": "list-spa-campaigns.json",
+        "method": "GET",
+        "path": "/{advertiser_id}/sponsored_products/legacy/campaigns",
+        "summary": "List all SPA campaigns for an advertiser with pagination and optional status filter"
+      },
+      {
+        "id": "get-spa-campaign-by-id",
+        "file": "get-spa-campaign-by-id.json",
+        "method": "GET",
+        "path": "/{advertiser_id}/sponsored_products/legacy/campaigns/{campaign_id}",
+        "summary": "Retrieve a specific SPA campaign by its ID"
+      },
+      {
+        "id": "update-spa-campaign",
+        "file": "update-spa-campaign.json",
+        "method": "PUT",
+        "path": "/{advertiser_id}/sponsored_products/legacy/campaigns/{campaign_id}",
+        "summary": "Update an existing SPA campaign"
+      },
+      {
+        "id": "create-update-product-set-for-campaign",
+        "file": "create-update-product-set-for-campaign.json",
+        "method": "PUT",
+        "path": "/{advertiser_id}/sponsored_products/campaigns/{campaign_id}/product_sets",
+        "summary": "Create or update the product set for a campaign"
+      },
+      {
+        "id": "get-product-set-for-campaign",
+        "file": "get-product-set-for-campaign.json",
+        "method": "GET",
+        "path": "/{advertiser_id}/sponsored_products/campaigns/{campaign_id}/product_sets",
+        "summary": "Retrieve the product set for a campaign"
+      },
+      {
+        "id": "create-update-positive-keyword-settings-for-campaign",
+        "file": "create-update-positive-keyword-settings-for-campaign.json",
+        "method": "PUT",
+        "path": "/{advertiser_id}/sponsored_products/campaigns/{campaign_id}/keyword_settings/positive",
+        "summary": "Create or update positive keyword settings for a campaign"
+      },
+      {
+        "id": "get-positive-keyword-settings-for-campaign",
+        "file": "get-positive-keyword-settings-for-campaign.json",
+        "method": "GET",
+        "path": "/{advertiser_id}/sponsored_products/campaigns/{campaign_id}/keyword_settings/positive",
+        "summary": "Retrieve the positive keyword settings for a campaign"
+      },
+      {
+        "id": "create-update-negative-keyword-settings-for-campaign",
+        "file": "create-update-negative-keyword-settings-for-campaign.json",
+        "method": "PUT",
+        "path": "/{advertiser_id}/sponsored_products/campaigns/{campaign_id}/keyword_settings/negative",
+        "summary": "Create or update negative keyword settings for a campaign"
+      },
+      {
+        "id": "get-negative-keyword-settings-for-campaign",
+        "file": "get-negative-keyword-settings-for-campaign.json",
+        "method": "GET",
+        "path": "/{advertiser_id}/sponsored_products/campaigns/{campaign_id}/keyword_settings/negative",
+        "summary": "Retrieve the negative keyword settings for a campaign"
+      },
+      {
+        "id": "create-update-category-bids-for-campaign",
+        "file": "create-update-category-bids-for-campaign.json",
+        "method": "PUT",
+        "path": "/{advertiser_id}/sponsored_products/campaigns/{campaign_id}/category_bid_setting",
+        "summary": "Create or update category bids for a campaign"
+      },
+      {
+        "id": "get-category-bids-for-campaign",
+        "file": "get-category-bids-for-campaign.json",
+        "method": "GET",
+        "path": "/{advertiser_id}/sponsored_products/campaigns/{campaign_id}/category_bid_setting",
+        "summary": "Retrieve the category bids for a campaign"
+      },
+      {
+        "id": "save-campaign-network-settings",
+        "file": "save-campaign-network-settings.json",
+        "method": "PUT",
+        "path": "/{advertiser_id}/sponsored_products/campaigns/{campaign_id}/network_settings",
+        "summary": "Save the networks a Sponsored Products campaign targets"
+      },
+      {
+        "id": "get-campaign-network-settings",
+        "file": "get-campaign-network-settings.json",
+        "method": "GET",
+        "path": "/{advertiser_id}/sponsored_products/campaigns/{campaign_id}/network_settings",
+        "summary": "Get the networks a Sponsored Products campaign targets"
+      },
+      {
+        "id": "get-campaign-forecast",
+        "file": "get-campaign-forecast.json",
+        "method": "POST",
+        "path": "/{advertiser_id}/sponsored_products/campaigns/{campaign_id}/forecast",
+        "summary": "Get forecast for a campaign"
+      }
+    ]
+  }
+}
