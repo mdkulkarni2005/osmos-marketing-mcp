@@ -3,6 +3,26 @@
 Run after all dimension documents have emitted scenarios, before
 prioritization's output is finalized in the matrix.
 
+## Generation-time ledger (don't wait until the end to notice a repeat)
+
+Maintain a running ledger of every emitted `(endpoint, method,
+normalized_request_diff_from_baseline, expected_result, index-vs-[*]
+distinction)` tuple as scenarios are generated, not only at this
+post-generation pass. Before emitting a new scenario, check it against the
+ledger:
+
+- Exact match on the tuple → don't emit it; this is the case this doc's
+  batch pass exists to catch for anything that slips through, but catching
+  it here, at generation time, is what keeps a single endpoint's Scenario
+  Matrix from silently ballooning as more dimension docs run over the same
+  fields.
+- Same field, different failure mode (per "What to keep" below) → emit, add
+  to ledger as a distinct entry.
+
+This is a discipline for *this generation pass*, not a separate dimension —
+it doesn't change what counts as a duplicate (still defined below), only
+when the check happens.
+
 ## What counts as a duplicate
 
 Two scenarios are duplicates if they would exercise the **same request shape
@@ -34,6 +54,17 @@ by both [[negative-testing]] "missing required field" and [[enum-testing]]
   a value that is simultaneously the numeric maximum and also forbidden by a
   conditional rule) — keep both, but note the overlap in `risk` so a human
   reviewer understands why two scenarios look similar.
+
+## Nested/indexed paths are not duplicates of their `[*]` counterpart
+
+A [[nested-traversal]] schema-level case (`container[*].leaf`) and the
+partial-array-validity probe's indexed case (`container[0].leaf`,
+`container[-1].leaf`) targeting the same leaf are **not** duplicates even
+when the concrete invalid value happens to match — the `[*]` case asserts
+that leaf's own validation rule in isolation, the indexed case asserts
+array-level batch handling (does one bad item reject/drop/500 the whole
+request). Group them separately by including the index-vs-`[*]` distinction
+in the grouping key below, not just the normalized request diff.
 
 ## Merge procedure
 

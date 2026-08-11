@@ -60,6 +60,20 @@ For the supplied scenario suite (Scenario Matrix + Coverage Report from
 13. **Company formatting** — confirm every row has all columns required by
     [[company-testcase-format]]'s active format (Learned Conventions if
     populated, otherwise Generic Default).
+14. **Nested structure coverage** — for every field the contract model marks
+    `array-of-object`, `array-of-union`, `array-of-array`, or
+    `array-of-constrained-scalar` (per [[contract-analysis]]/
+    [[nested-traversal]]), confirm at least one `container[*].leaf`-shaped
+    scenario exists per item leaf with a documented constraint, and a
+    partial-array-validity probe exists (or its absence is explained, e.g.
+    `maxItems: 1`). Flag any such array with only array-level (count/type)
+    coverage and no item-level scenarios.
+15. **Nested path validity** — flag any scenario whose `field` uses `[*]`,
+    `[0]`, or `[-1]` indexing but doesn't trace to a documented `items`
+    schema (a fabricated nested path is exactly as serious as check 5's
+    fabricated top-level fact). Flag any `[0]`/`[-1]`-indexed scenario that
+    isn't part of a partial-array-validity probe — per
+    [[nested-traversal]], indexed paths are reserved for that probe only.
 
 ## Verdict
 
@@ -74,9 +88,10 @@ Overall verdict:
 - **NEEDS_REVIEW** — one or more `FAIL` on checks 3, 11, 12, or 13 (quality/
   polish issues that a human can quickly fix or wave through) — or any check
   where the reviewer isn't fully confident the finding is correct.
-- **FAIL** — one or more `FAIL` on checks 1, 2, 5, 6, 7, 8, 9, or 10
+- **FAIL** — one or more `FAIL` on checks 1, 2, 5, 6, 7, 8, 9, 10, 14, or 15
   (substantive gaps: missing coverage, untraceable/fabricated content, wrong
-  expected results, or silently skipped required dimensions).
+  expected results, silently skipped required dimensions, or unrecursed/
+  fabricated nested structure).
 
 Always report the verdict with the specific failing check numbers and a
 one-line reason per failure — never a bare PASS/FAIL/NEEDS_REVIEW with no

@@ -47,6 +47,15 @@ generate it under that dimension instead ([[format-testing]],
   length constraint is documented at all, it's owned here as a plain
   empty-value probe).
 
+## Nested fields
+
+Applies unchanged to leaves inside an array-of-object/array-of-union field —
+reach them via [[nested-traversal]]'s `container[*].leaf` path, generated
+once against a representative item, not once per index. A wrong-type/null/
+empty case on the *container itself* (the array or object field, not a leaf
+inside it) is a separate scenario, defined in [[nested-traversal]]'s
+container-level section.
+
 ## Priority
 
 Type-mismatch on required fields: P1. Type-mismatch on optional fields: P2.

@@ -34,6 +34,15 @@ For a documented enum with members `[V1, V2, ..., Vn]`:
   case-sensitive or case-insensitive, skip this — it's already answered, not
   a test gap.
 
+## Nested fields
+
+Applies unchanged to a documented enum on a leaf inside an array-of-object's
+items — reach it via [[nested-traversal]]'s `container[*].leaf` path against
+one representative item. If items are a `oneOf` union and the enum only
+exists on one branch, generate the enum coverage only for item instances of
+that branch (per [[nested-traversal]]'s union-item handling), not for items
+shaped like the other branch.
+
 ## Cross-field enum interactions
 
 If a conditional rule ties one enum's value to another field's

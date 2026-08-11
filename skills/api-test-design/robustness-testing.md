@@ -1,7 +1,11 @@
-# Robustness / Resource / Concurrency / Pagination Testing
+# Robustness / Pagination Testing
 
-Covers dimensions: Robustness, Resource-consumption, Concurrency candidates,
-Pagination, Filtering, Sorting, Idempotency, Duplicate-operation.
+Covers dimensions: Robustness, Pagination, Filtering, Sorting, Idempotency,
+Duplicate-operation. Concurrency candidates moved to
+[[concurrency-testing]]; the rate/burst sub-area of Resource-consumption
+moved to [[rate-limit-testing]] — both were single-paragraph flags here
+before and needed real generation methodology, so they're now dedicated
+docs. This doc keeps the plain oversized-payload probe.
 
 ## Applicability
 
@@ -38,16 +42,6 @@ probing for undocumented server-side limit`. Never send payloads sized to
 actually degrade a shared environment; this is a design-time scenario for
 execution in an isolated test environment only.
 
-### Concurrency candidates
-
-`APPLICABLE` for any endpoint that mutates shared state (POST/PUT/PATCH/
-DELETE) where a race condition would matter (e.g. two near-simultaneous
-updates to the same resource, two simultaneous creates that might violate an
-implied uniqueness rule). This skill only *flags* these as candidates for a
-dedicated concurrency test harness — it does not generate literal concurrent
-execution instructions (that's an execution-layer concern, out of scope for
-test *design*).
-
 ### Idempotency / Duplicate-operation
 
 See [[idempotency-testing]] for the full generation rules for both
@@ -56,6 +50,6 @@ recurs across create, update, and workflow-retry scenarios.
 
 ## Priority
 
-Documented pagination/filter/sort boundaries: P1. Undocumented-limit probes
-and concurrency candidates: P2–P3 (they surface real gaps but aren't
-asserting a known contract violation).
+Documented pagination/filter/sort boundaries: P1. Undocumented-limit probes:
+P2–P3 (they surface real gaps but aren't asserting a known contract
+violation).

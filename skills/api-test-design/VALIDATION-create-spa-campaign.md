@@ -1,5 +1,12 @@
 # Validation Run — create-spa-campaign
 
+**Stale sample, not spec.** Generated against the pre-nested, 35-dimension
+version of [[api-test-design]] — before [[nested-traversal]],
+[[concurrency-testing]], [[rate-limit-testing]], and [[versioning-testing]]
+existed (now 36 dimensions). Kept as a worked example of the *format*, not
+a template to imitate for current dimension coverage or counts; do not
+regenerate the 389 lines below off this note alone.
+
 Purpose: prove the skill system in this directory works by applying it to a
 real endpoint contract. **No API calls were made.** The contract was read
 directly from `registry/endpoints/create-spa-campaign.json` and

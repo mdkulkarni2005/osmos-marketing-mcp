@@ -9,13 +9,16 @@ description: Converts an approved company-format testcase workbook (from api-tes
 
 **"How do I convert an approved testcase into a Postman request?"** It runs
 after [[company-testcase-format]] and [[qa-review]], and before local
-execution (Newman) and result reconciliation — not yet built as separate
-skills, see "Current status" below — in this workflow:
+execution (Newman) and result reconciliation — implemented in
+`src/execution/` and `src/reconciliation/`, see `docs/local-execution.md`,
+not a skill of its own since it's a fixed CLI/runner, not something an
+agent needs to re-derive — in this workflow:
 
 ```
 Documentation MCP → API Contract → api-test-design → company-testcase-format
    → qa-review → HUMAN APPROVAL → postman-test-implementation
-   → (execution, not yet built) → (result reconciliation, not yet built)
+   → local execution (docs/local-execution.md, office machine only)
+   → result reconciliation (same doc, TC_ID-keyed workbook write-back)
 ```
 
 This skill does not add or remove scenarios, does not judge quality, and
@@ -71,9 +74,10 @@ each time:
 - `collection-validator.ts` — the Phase 5 gate: every executable testcase
   must map to exactly one request; no unresolved path params; request
   bodies must be valid JSON; no header holds a literal instead of a
-  `{{variable}}`. Critical findings must block execution
-  (see [[postman-execution]]); a rate-limit-gated or E2E-chain-pending row
-  is a warning, not a critical failure — it was never supposed to produce a
+  `{{variable}}`. Critical findings must block execution (see
+  `docs/local-execution.md` — the runner's preflight refuses `RUN` mode on
+  a failed validation); a rate-limit-gated or E2E-chain-pending row is a
+  warning, not a critical failure — it was never supposed to produce a
   request yet.
 
 ## What this skill must never do
@@ -105,8 +109,11 @@ validates it, with no credentials required). No real
 [[api-test-design]] + [[company-testcase-format]] produce one, point
 `WORKBOOK_PATH` at it instead of the fixture.
 
-Execution (local Newman runner) and result reconciliation (mapping run
-results back to the workbook by TC_ID and updating Actual Status
-Code/Actual Response/Status/Bug Description) are not yet implemented —
-that's the next phase. Neither of those skills/modules exists in this repo
-yet; don't reference them as if they do.
+Execution (local Newman runner, `src/execution/`) and result reconciliation
+(TC_ID-keyed mapping of run results back to the workbook's Actual Status
+Code/Actual Response/Status/Bug Description columns, `src/reconciliation/`)
+are implemented — see `docs/local-execution.md` for the two-machine
+constraint, the `BUILD_ONLY`/`VALIDATE_ONLY`/`DRY_RUN`/`RUN` modes, and the
+exact commands. [[cicd-integration]] wires the credential-free modes
+(everything except `RUN`) into automated CI; `RUN` stays a manual,
+office-machine-only step by design.

@@ -33,6 +33,17 @@ Facts to extract:
     often prose, e.g. "Required when budget_type=LIFETIME_BUDGET" or
     "Forbidden when X". Extract them as structured
     `IF <condition> THEN <requirement>` facts for [[dependency-testing]].
+  - For every field of `type: array`, additionally record: `containerType`
+    (`array-of-scalar` if `items.type` is a primitive with no further
+    constraints, `array-of-constrained-scalar` if the scalar item carries
+    its own `pattern`/`minLength`/etc., `array-of-object` if `items.type ==
+    object`, `array-of-union` if `items` is `oneOf`/`anyOf`, `array-of-array`
+    if `items.items` exists), the `itemSchema` itself (verbatim, unrecursed —
+    let [[nested-traversal]] do the recursion), and `depth` (1 for a
+    top-level array, incrementing for arrays nested inside arrays/objects).
+    Do not flatten array-of-object or array-of-union items into the flat
+    dotted-path model — [[nested-traversal]] is the only step allowed to
+    recurse into them.
 - Response definitions per status code: description, content type, example,
   and — critically — whether a formal `schema` exists separate from the
   `example`. Do not treat `example` keys as guaranteed response fields.
@@ -48,7 +59,8 @@ Facts to extract:
   delete, or list → get-by-id)? These feed [[stateful-testing]] and
   [[workflow-testing]].
 - Versioning signals (path version segment, deprecated flag, migration
-  notes).
+  notes, sibling endpoints at a different version) — feeds
+  [[versioning-testing]].
 
 ## Conditional-rule extraction pattern
 
@@ -71,7 +83,14 @@ proximity alone — that would violate the no-guessing policy.
 
 A structured model (JSON-shaped in your working memory, not necessarily
 written to a file) containing: `parameters[]`, `requestBodyFields[]` (flat,
-with `path` like `budget_setting.daily_budget_multiplier`),
-`conditionalRules[]`, `responses{}`, `relatedEndpoints[]`,
-`notDocumented[]`. Every subsequent dimension document operates only on this
-model.
+with `path` like `budget_setting.daily_budget_multiplier`, for every field
+reachable **without** an array index), `arrayFields[]` (one entry per
+`type: array` field, carrying `containerType`, `itemSchema`, `depth` as
+described above — these are deliberately left unflattened, for
+[[nested-traversal]] to consume), `conditionalRules[]` (request-level only;
+item-scoped rules are extracted separately, inside [[nested-traversal]], from
+each `itemSchema`), `responses{}`, `relatedEndpoints[]`, `notDocumented[]`.
+Every subsequent dimension document operates only on this model — dimension
+docs read `requestBodyFields[]` directly; they read `arrayFields[]` only
+through [[nested-traversal]], never by hand-recursing an `itemSchema`
+themselves.
