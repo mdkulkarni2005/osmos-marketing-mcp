@@ -4,7 +4,13 @@
   "description": "MCP server exposing the OSMOS Marketing API registry as callable tools",
   "type": "module",
   "scripts": {
-    "start": "node server.mjs"
+    "start": "npm run build && node server.mjs",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "postman:fixture": "npm run build && node dist/postman/build-fixture-workbook.js",
+    "postman:dry-run": "npm run build && node dist/postman/dry-run.js",
+    "execution:fixture-test": "npm run build && node dist/execution/fixture-tests.js",
+    "execution:run": "npm run build && node dist/execution/cli.js"
   },
   "keywords": [
     "mcp",
@@ -14,6 +20,13 @@
   "license": "ISC",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
+    "exceljs": "^4.4.0",
+    "newman": "^6.2.2",
     "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/newman": "^5.3.6",
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
   }
 }

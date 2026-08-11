@@ -186,125 +186,17 @@ mandatory fields... 2. Verify adGroup under CPC campaign... 3. Verify freq
 capping is disabled."` — `OBSERVED_PATTERN`, used specifically for
 multi-assertion GET/verification scenarios, not for every scenario.
 
-### Postman collection conventions
+### Postman collection and environment conventions
 
-**Two root folders**: `Regression Suite` and `E2E Suite`.
-`COMPANY_CONVENTION` — state-independent checks (one request, asserted in
-isolation) are kept structurally separate from stateful lifecycle chains.
-
-**Regression Suite subfolders** are numbered by domain/workflow area, not
-one-per-endpoint: `00_Setup_Lookups`, `01_Campaign_Budget_Bidding`,
-`02_AdGroup_CRUD`, `03_Targeting`, `04_Reporting`,
-`05_Critical_Negatives_Security`. `COMPANY_CONVENTION`: `NN_ThemeName`
-numeric-prefixed folders grouped by feature area; a dedicated `00_` folder
-holds shared setup/lookup requests (not test cases themselves); negative
-and security cases are pooled into one tail folder rather than split per
-TC Type.
-
-**E2E Suite folders spell out the literal state path** being exercised,
-e.g. `"Create Campaign - Create Adgroup - publish Adgroup [UR] - Creatives
-Uploaded - Active Adgroup - Unpublish [paused] - DELETE"`, with nested
-sub-folders for branching transitions (`UNDER_REVIEW → APPROVED`,
-`UNDER_REVIEW → REJECTED`, `UNDER_REVIEW → DELETED`). `COMPANY_CONVENTION`.
-
-**Request naming**: `[<TC_ID>] <human description>` — the bracketed TC_ID
-must match the TC_ID of the corresponding spreadsheet row exactly, so
-spreadsheet and collection are cross-referenced by ID. `COMPANY_CONVENTION`.
-Two suffix/tag conventions observed:
-- `_SETUP` suffix on requests that exist only to provision state for a
-  later chained request, e.g. `[AG_E2E_SETUP] Create Campaign` — `COMPANY_CONVENTION`.
-- `[BUG]` tag appended to a request tied to a known open defect, e.g.
-  `[CRT_079][BUG] Missing x-token header` — `OBSERVED_PATTERN` (seen once
-  in the sample, but a sensible, low-cost convention to carry forward).
-
-**pm.test naming**: every assertion title repeats the TC_ID —
-`pm.test("[<TC_ID>] <assertion label>", ...)`. `COMPANY_CONVENTION`.
-
-**Test script skeleton — repeated in effectively every request**,
-`COMPANY_CONVENTION`, in this order:
-1. Optional chain-variable save, prefixed with a `// [CHAIN]` comment tag,
-   e.g. `pm.collectionVariables.set("cpc_cId", jsonData.result.id)`.
-2. Status-code assertion (`pm.expect(pm.response.code).to.eql(<expected>)`).
-3. Response-time assertion — `< 8000` ms, on **every** request including
-   negative/error-path ones, not just happy-path.
-4. One or more property/type assertions on the parsed JSON body.
-5. Trailing "Retry tracking" boilerplate:
-   `pm.collectionVariables.set("_lastStatus", pm.response.code.toString())`
-   then reset `_retryCount` to `"0"` unless the status was `429`.
-
-**Variable chaining**: response IDs are saved with short, *scenario-specific*
-names, not one reused global — pattern
-`<shortScenarioTag>_<c|ag|...>Id`, e.g. `cpc_cId`, `ag_bc_cId`,
-`ag_fc3_Id`, alongside a few generic ones (`campaignId`, `adGroupId`) used
-where only one instance is in flight. `COMPANY_CONVENTION`: name chain
-variables for the scenario that produced them when multiple parallel
-Create-scenarios need independently addressable IDs later in the same run;
-fall back to a plain `<entity>Id` when there's only one live instance. The
-exact variable names (`cpc_cId`, etc.) are `SDA_SPECIFIC_RULE` — only the
-naming *pattern* transfers.
-
-**Setup/cleanup**: no dedicated teardown folder or script. E2E chains
-self-clean by ending in a `DELETE`/`Unpublish` request as their final step;
-the `00_Setup_Lookups` folder is read-only lookups (inventory IDs, creative
-template IDs), not create+delete scaffolding. `OBSERVED_PATTERN`.
-`NOT_DOCUMENTED` whether the plain Regression Suite (non-E2E) requests get
-cleaned up at all — no evidence either way.
-
-**Collection-level pre-request script** (`COMPANY_CONVENTION`, runs before
-every request):
-1. Mirrors a fixed list of environment variables into collection variables
-   — the script's own comment states "Source of truth = ENVIRONMENT";
-   collection variables are a resolved cache, not the source.
-2. A shared "date engine" computes ISO-8601-no-milliseconds dates
-   (`2026-06-11T15:32:00Z` style) from environment-configured offsets
-   (`start_offset_days`, `campaign_duration_days`, `adgroup_offset_days`)
-   rather than any request hardcoding a literal date. This is why the same
-   collection keeps passing day after day without manual date edits.
-
-**Item-level pre-request scripts** exist on ~27% of requests, almost always
-either (a) the shared "relies on run-order chaining" comment noting the
-request depends on state from an earlier request in folder order (no
-active code), or (b) a one-line local variable override for a scenario
-that needs exactly one different value than the collection default, e.g.
-`pm.variables.set("advertiserid", "10065130")` for a cross-advertiser
-security test. `OBSERVED_PATTERN`: local override at item level is the
-escape hatch for a single-scenario deviation, rather than duplicating the
-whole request or forking the collection.
-
-**Auth**: bearer token set once at collection level (`{{token}}`),
-inherited by every request rather than repeated per-request.
-`COMPANY_CONVENTION`.
-
-**Script comment convention**: bracketed, all-caps tag at the start of a
-comment line marks its purpose — `// [CHAIN] ...`, `// [SETUP] ...`,
-`// [setup library removed] ...`. `COMPANY_CONVENTION`.
-
-### Postman environment conventions
-
-**File naming**: `<Service> <Version> - <Suite name>.postman_environment.json`,
-e.g. `SDA V2 - Regression`. `COMPANY_CONVENTION` (pattern transfers as
-`<SERVICE> <VERSION> - <SUITE>`, e.g. `SPA V1 - Regression`).
-
-**Variable typing**: plain config uses Postman's `default` type; the auth
-token is stored as `secret` type (masked in the Postman UI), not `default`.
-`COMPANY_CONVENTION` — carry the `secret` type forward for any credential
-variable in a future service's environment. Computed-at-runtime values
-(dates) are typed `any` with an empty starting value, filled in by the
-collection's pre-request date engine. **No token value, real or sample, is
-reproduced anywhere in this skill file.**
-
-**Naming casing**: mixed — mostly lowercase/snake_case
-(`retailer_id`, `start_offset_days`) but with camelCase exceptions
-(`walletId`, `creativeTemplateId`) and one outright duplicate
-(`advertiserid` and `advertiserId` both present, apparently a legacy
-holdover). `NOT_DOCUMENTED` / `NEEDS_REVIEW` — no single enforced casing
-rule is evident; don't invent one. Pick one casing convention for a new
-service's environment and stay consistent within that file, rather than
-inferring a company-wide rule that doesn't exist.
-
-**Feature gating**: expensive/optional test classes (e.g. rate-limit
-probes) are gated behind a boolean environment variable
-(`runRateLimits`) rather than always executing. `COMPANY_CONVENTION`.
+Extracted in full into `knowledge/company/postman-conventions.md` — folder
+structure (`Regression Suite` / `E2E Suite`), request naming
+(`[TC_ID] description`), the `pm.test` script skeleton, chain-variable
+naming, setup/cleanup pattern, collection-level pre-request script (env
+mirroring + date engine), auth, and environment variable typing/casing/
+feature-gating. That file is the single source of truth for these
+conventions — read it there rather than duplicating it here; this section
+exists only so a reader of this skill knows the material exists and where
+it moved.
 
 ### What was intentionally excluded from this skill (SDA-specific)
 

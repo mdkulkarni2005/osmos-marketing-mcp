@@ -1,3 +1,19 @@
 node_modules/
 .DS_Store
 opencode.json
+dist/
+
+# Reference artifacts from colleague (SDA collection/environment contain a
+# real secret token value) — convention-extraction source only, never ship.
+reference/
+
+# Generated Postman artifacts and execution output — may contain env-specific
+# values; regenerate from the workbook rather than committing.
+generated/
+execution-results/
+*.postman_collection.local.json
+*.postman_environment.local.json
+
+# Local secrets
+.env
+.env.local
