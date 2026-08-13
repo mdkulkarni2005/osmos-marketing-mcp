@@ -30,6 +30,14 @@ For every field with a documented type/enum/pattern/range: delegate to
 [[data-type-testing]], [[enum-testing]], [[format-testing]], and
 [[boundary-testing]] respectively — do not duplicate here.
 
+For a required field that lives inside an array-of-object or array-of-union
+field (an `arrayFields[]` entry from [[contract-analysis]], not a plain
+dotted path), apply the "missing/null/empty" rules above to the item leaf
+via [[nested-traversal]]'s path convention (`container[*].leaf`), and
+separately generate the container-level case (the whole array/object absent,
+null, or wrong-typed) per [[nested-traversal]]'s container-level section —
+these are two distinct request shapes, not a duplicate pair.
+
 For path/query parameters:
 
 - **Invalid path parameter** — wrong type (e.g. non-numeric where

@@ -42,6 +42,18 @@ MAX_PERFORMANCE_CPC, value defaults to 1 and only 1 is allowed")
 - valid: A=X, C=Y
 - invalid: A=X, C≠Y (a value contradicting the documented constraint)
 
+## Item-scoped rules
+
+A conditional rule whose `IF` and `THEN` fields both live inside the same
+array item schema (not the request body) is extracted and generated the
+same way, but scoped with [[nested-traversal]]'s `[*]` path convention —
+e.g. `create-update-category-bids-for-campaign`'s `category_bids[*].bid_value`
+description states "Must be greater than 0 when is_active=true; must be null
+when is_active=false", a genuine per-item rule. Extract only when the item
+description literally states a conditional, never from field proximity. See
+[[nested-traversal]]'s "Item-scoped conditional rules" section for
+extraction mechanics.
+
 ## Cross-field default interaction
 
 When a target field has both a `default` and a conditional forbidding it

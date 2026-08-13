@@ -46,6 +46,15 @@ merely being numeric is not sufficient to generate boundary cases.
 - `maxItems`
 - `maxItems + 1`
 
+## Nested fields
+
+`minItems`/`maxItems` above describes the array's own count boundary — that
+stays owned here regardless of what's inside the array. A numeric/string
+limit documented on a *leaf inside* an array-of-object's items (e.g.
+`category_bids[*].bid_value.maximum`) is also owned here, but reached via
+[[nested-traversal]]'s `container[*].leaf` path against one representative
+item — do not generate the same boundary case once per array index.
+
 ## Explicit non-invention rule
 
 If only one bound is documented (e.g. `minimum` but no `maximum`), generate

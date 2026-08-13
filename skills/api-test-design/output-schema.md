@@ -8,9 +8,15 @@ consumers ([[company-testcase-format]], [[qa-review]]).
 scenario_id: <stable id, e.g. "SPA-CREATE-BS-001">
 endpoint: <endpoint id from the contract, e.g. "create-spa-campaign">
 method: <HTTP method>
-category: <one of the 35 dimension names>
+category: <one of the 36 dimension names>
 subcategory: <finer label, e.g. "boundary.number.max+1">
-field: <dotted field path this scenario targets, or "N/A" for endpoint-level>
+field: <dotted field path this scenario targets, or "N/A" for endpoint-level.
+  For a leaf inside an array-of-object/array-of-union field, use
+  "container[*].leaf" for ordinary schema-level cases (type/boundary/enum/
+  format/required, generated once against a representative item) and
+  "container[0].leaf" / "container[-1].leaf" only for the
+  partial-array-validity probe from [[nested-traversal]] — never emit
+  per-index copies of an ordinary schema-level case.>
 scenario: <one-line human description of what's being tested>
 precondition: <state required before this request, or "none">
 test_data: <the actual request shape/value used — concrete, not abstract>
@@ -32,6 +38,10 @@ coverage_dimension: <which of the 35 dimensions this counts toward>
   without guessing (e.g. "invalid enum" but no sense of what a plausible
   invalid string looks like), use a self-evidently-wrong value like an empty
   string or a value with special characters, and say so in `scenario`.
+  [[test-data-management]] owns *how* concrete filler/format/ID/date values
+  are generated so the same kind of value is produced the same way across
+  scenarios — dimension docs supply the shape (boundary/enum/type), that
+  skill supplies the literal value.
 - `expected_result` must cite the documented status/behavior. If the contract
   documents the status code but not the response body, say so
   (`400, body shape NOT_DOCUMENTED`) rather than guessing the shape.

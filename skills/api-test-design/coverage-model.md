@@ -28,6 +28,21 @@ Where:
   and "Coverage Gaps" sections. They represent contract gaps, not skill
   failures — do not let them silently deflate or inflate the number.
 
+## Nested fields don't get a separate coverage metric
+
+A leaf reached via [[nested-traversal]] (e.g.
+`category_bid_setting.category_bids[*].bid_value`) counts toward the
+`total_applicable_items`/`covered_applicable_items` of whichever dimension
+owns it (Boundary, Enum, etc.) exactly like a top-level leaf — do not
+compute a separate "nested coverage %". A separate metric would double-count
+against the per-dimension numbers above the moment a nested leaf is also
+counted there. The one addition: if [[nested-traversal]]'s depth cap (3
+levels) cut off a real nested structure, record it as a `NOT_DOCUMENTED`-
+style gap — "nesting depth exceeds traversal cap at `<path>`, manual review
+recommended" — in Coverage Gaps, the same way an undocumented field would
+be, since from a coverage-reporting standpoint it's the same thing: a known
+area the automated pass could not ground a scenario in.
+
 ## Per-dimension reporting
 
 Report every dimension that was `APPLICABLE` at all, even at 100%:

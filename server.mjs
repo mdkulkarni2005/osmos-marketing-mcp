@@ -4,6 +4,17 @@ import { z } from "zod";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  buildCollectionTool,
+  buildEnvironmentTool,
+  validateCollectionTool,
+  validateEnvironmentTool,
+  runCollectionTool,
+  getExecutionResultsTool,
+  reconcileResultsTool,
+  updateWorkbookTool,
+  generateVisualizerTool,
+} from "./dist/execution/mcp-adapters.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REGISTRY_DIR = path.resolve(__dirname, "registry");
@@ -301,6 +312,102 @@ for (const epMeta of endpointsIndex) {
     }
   );
 }
+
+// ---- Postman build/validate/execute/reconcile tools ----
+// Thin wrappers only: all decisions live in src/execution + src/postman
+// (compiled to dist/). See docs/local-execution.md for the mode contract —
+// BUILD_ONLY/VALIDATE_ONLY/DRY_RUN never touch a network or require
+// credentials; only postman_run_collection can execute a real request, and
+// only with confirmRun explicitly true.
+
+const buildPathArgs = {
+  workbookPath: z.string().optional().describe("Path to the testcase workbook. Defaults to the fixture workbook."),
+  collectionPath: z.string().optional().describe("Where to write the built collection JSON."),
+  environmentPath: z.string().optional().describe("Where to write the built (placeholder) environment JSON."),
+};
+
+server.tool(
+  "postman_build_collection",
+  "BUILD_ONLY: read the testcase workbook and build a Postman collection JSON. No credentials, no execution.",
+  buildPathArgs,
+  async (args) => ({ content: [{ type: "text", text: JSON.stringify(await buildCollectionTool(args), null, 2) }] })
+);
+
+server.tool(
+  "postman_build_environment",
+  "BUILD_ONLY: build the placeholder Postman environment template (empty/safe values) for the collection's required variables.",
+  buildPathArgs,
+  async (args) => ({ content: [{ type: "text", text: JSON.stringify(await buildEnvironmentTool(args), null, 2) }] })
+);
+
+server.tool(
+  "postman_validate_collection",
+  "VALIDATE_ONLY: rebuild from the workbook and run collection-validator.ts. Returns pass/fail and every finding. Does not execute.",
+  buildPathArgs,
+  async (args) => ({ content: [{ type: "text", text: JSON.stringify(await validateCollectionTool(args), null, 2) }] })
+);
+
+server.tool(
+  "postman_validate_environment",
+  "Audits an environment file (real or placeholder) against the collection's actual required variables: missing/empty values, missing secrets, missing base_url, and a heuristic production-URL check. Does not execute anything.",
+  {
+    ...buildPathArgs,
+    environmentToCheckPath: z.string().optional().describe("Environment file to audit. Defaults to the generated placeholder."),
+    allowProductionUrl: z.boolean().optional().describe("Acknowledge a base_url that doesn't look like a test/staging host."),
+  },
+  async (args) => ({ content: [{ type: "text", text: JSON.stringify(await validateEnvironmentTool(args), null, 2) }] })
+);
+
+server.tool(
+  "postman_run_collection",
+  "RUN: executes the collection locally via Newman against a REAL environment with real credentials. Requires confirmRun=true and realEnvironmentPath. Blocked automatically if validation fails, required variables are missing, or the base URL looks like production without allowProductionUrl. Never runs as a side effect of any other tool.",
+  {
+    ...buildPathArgs,
+    realEnvironmentPath: z.string().describe("Local, gitignored environment file with real values. Never committed."),
+    confirmRun: z.boolean().describe("Must be explicitly true — this is the only gate that allows a real API call."),
+    allowProductionUrl: z.boolean().optional().describe("Acknowledge a base_url that doesn't look like a test/staging host."),
+    tcIds: z.array(z.string()).optional().describe("Run only these TC_IDs."),
+    folder: z.string().optional().describe("Run only this API/folder's testcases."),
+    failedOnly: z.boolean().optional().describe("Run only testcases whose workbook Status is currently Fail."),
+    blockedOnly: z.boolean().optional().describe("Run only testcases whose workbook Status is currently Blocker."),
+    skipWorkbookUpdate: z.boolean().optional().describe("Report-only: don't write results back into the workbook."),
+  },
+  async (args) => {
+    const { tcIds, folder, failedOnly, blockedOnly, ...rest } = args;
+    const selector =
+      tcIds?.length ? { tcIds } : folder ? { folder } : failedOnly ? { failedOnly } : blockedOnly ? { blockedOnly } : undefined;
+    const result = await runCollectionTool({ ...rest, selector });
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }], isError: result.blocked === true };
+  }
+);
+
+server.tool(
+  "postman_get_execution_results",
+  "Reads back the last run's normalized, already-redacted execution-results.json.",
+  { outDir: z.string().optional().describe("Execution output directory. Defaults to generated/execution.") },
+  async (args) => ({ content: [{ type: "text", text: JSON.stringify(await getExecutionResultsTool(args), null, 2) }] })
+);
+
+server.tool(
+  "postman_reconcile_results",
+  "Re-runs TC_ID reconciliation against a prior execution-results.json without executing anything — for re-applying results after a manual workbook fix.",
+  { ...buildPathArgs, outDir: z.string().optional() },
+  async (args) => ({ content: [{ type: "text", text: JSON.stringify(await reconcileResultsTool(args), null, 2) }] })
+);
+
+server.tool(
+  "postman_generate_visualizer",
+  "Generates a self-contained, pannable/zoomable HTML graph (Endpoint -> TC Type -> Test Case, plus derived field nodes where scenario text names one) from the SAME testcase workbook + registry the Postman pipeline reads. No credentials, no execution, offline-viewable in any browser.",
+  { ...buildPathArgs, visualizerPath: z.string().optional().describe("Where to write the HTML file. Defaults to generated/reports/testcase-graph.html.") },
+  async (args) => ({ content: [{ type: "text", text: JSON.stringify(await generateVisualizerTool(args), null, 2) }] })
+);
+
+server.tool(
+  "postman_update_workbook",
+  "Writes the last run's reconciled results into the SAME testcase workbook (Actual Status Code / Actual Response / Status / Bug Description only). Explicit, separate step from RUN.",
+  { ...buildPathArgs, outDir: z.string().optional() },
+  async (args) => ({ content: [{ type: "text", text: JSON.stringify(await updateWorkbookTool(args), null, 2) }] })
+);
 
 // ---- Start ----
 const transport = new StdioServerTransport();
