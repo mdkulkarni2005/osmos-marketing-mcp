@@ -61,6 +61,41 @@ Facts to extract:
 - Versioning signals (path version segment, deprecated flag, migration
   notes, sibling endpoints at a different version) — feeds
   [[versioning-testing]].
+- **Risk signals**, for the risk classification below: field names/types
+  that indicate credentials (`password`, `token`, `secret`, `otp`, `pin`),
+  identity/PII (`ssn`, `email`, `dob`, `national_id`, `passport`), financial
+  data (`amount`, `currency`, `card`, `account_number`, `iban`), or
+  irreversible/high-value business effects (spend limits, budget commit,
+  delete/cancel/refund operations); operationId/path/summary/description
+  wording that names auth flows (`login`, `signin`, `signup`, `reset-
+  password`, `verify`, `authorize`) or destructive/financial actions
+  (`delete`, `charge`, `refund`, `transfer`, `payout`); and any field the
+  contract itself marks sensitive (`format: password`, `x-sensitive: true`,
+  or prose saying so). Record every signal found, verbatim, with its source
+  field/text — this list is the *only* input to risk classification below,
+  never a guess about what the endpoint "probably" does.
+
+## Risk classification (feeds the security-dimension scope budget)
+
+Using only the risk signals extracted above, assign one tier:
+
+- **CRITICAL** — the endpoint handles credentials directly (login/password/
+  token/OTP flows), or PII/financial data, or triggers an irreversible/
+  high-value effect (payment, refund, transfer, account deletion).
+- **ELEVATED** — the endpoint is auth-gated and mutates state or returns
+  data scoped to a specific tenant/user (most create/update/delete
+  endpoints on business resources), but doesn't itself touch credentials/
+  PII/money.
+- **STANDARD** — read-only or low-sensitivity endpoints with no risk
+  signals found (e.g. a public lookup/reference-data GET).
+
+Record which specific signal(s) drove the tier — "CRITICAL: operationId
+contains 'login', field `password` present" — so the classification is
+traceable, not asserted. If no signals are found at all, default to
+STANDARD and say so explicitly; do not upgrade a tier on a hunch.
+
+This tier is an *input to [[security-testing]] and the scope budget*, not a
+new dimension itself — the 36 dimensions are unchanged.
 
 ## Conditional-rule extraction pattern
 

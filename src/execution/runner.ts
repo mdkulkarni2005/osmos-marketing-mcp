@@ -39,16 +39,18 @@ export interface RunReport {
 async function buildAndValidate(options: RunOptions) {
   const { testcases: allTestcases } = await readTestcaseWorkbook(options.workbookPath);
   const registry = loadEndpointRegistry();
-  const { collection, usedVariables, unresolved, nonExecutable } = buildCollection(allTestcases, registry, {
-    collectionName: "OSMOS Marketing API - SPA Regression Suite",
-  });
+  const { collection, usedVariables, unresolved, nonExecutable, bodyFieldWarnings } = buildCollection(
+    allTestcases,
+    registry,
+    { collectionName: "OSMOS Marketing API - SPA Regression Suite" }
+  );
   const environment = buildEnvironment(usedVariables, {
     serviceName: "OSMOS Marketing API",
     serviceVersion: "V1",
     suiteName: "Regression",
     baseUrl: registry.service.baseUrl,
   });
-  const validation = validateCollection(collection, allTestcases, unresolved, nonExecutable);
+  const validation = validateCollection(collection, allTestcases, unresolved, nonExecutable, bodyFieldWarnings);
 
   return { allTestcases, collection, usedVariables, environment, validation };
 }

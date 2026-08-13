@@ -9,6 +9,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "postman:fixture": "npm run build && node dist/postman/build-fixture-workbook.js",
     "postman:dry-run": "npm run build && node dist/postman/dry-run.js",
+    "postman:visualize": "npm run build && node dist/postman/generate-visualizer.js",
     "execution:fixture-test": "npm run build && node dist/execution/fixture-tests.js",
     "execution:run": "npm run build && node dist/execution/cli.js"
   },

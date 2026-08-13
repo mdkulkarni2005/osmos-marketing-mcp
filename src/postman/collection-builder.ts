@@ -1,9 +1,10 @@
 import type { PostmanCollection } from "../schemas/collection.js";
 import type { ExecutableTestcase } from "../schemas/testcase.js";
-import type { EndpointRegistry } from "./endpoint-registry.js";
+import { resolveEndpoint, type EndpointRegistry } from "./endpoint-registry.js";
 import { VariableTracker } from "./variable-manager.js";
 import { buildRequestItem, type RequestBuilderConfig } from "./request-builder.js";
 import { buildFolders, type BuiltRequest } from "./folder-manager.js";
+import { findUnknownBodyFields } from "./body-schema-check.js";
 
 export interface CollectionBuildOptions {
   collectionName: string;
@@ -17,6 +18,8 @@ export interface CollectionBuildResult {
   unresolved: { tcId: string; reason: string }[];
   /** Rows intentionally left out because the reader already determined they're not executable (e.g. rate-limit gated) — expected, not an error. */
   nonExecutable: { tcId: string; reason: string }[];
+  /** Rows whose request body has a top-level field the resolved endpoint's documented schema doesn't recognize — likely drift/copy-paste, not blocking (may be a deliberate forbidden-field negative test) but always worth a human look. */
+  bodyFieldWarnings: { tcId: string; endpointId: string; fields: string[] }[];
 }
 
 const DEFAULT_REQUEST_CONFIG: RequestBuilderConfig = {
@@ -50,20 +53,52 @@ export function buildCollection(
   const built: BuiltRequest[] = [];
   const unresolved: { tcId: string; reason: string }[] = [];
   const nonExecutable: { tcId: string; reason: string }[] = [];
+  const bodyFieldWarnings: { tcId: string; endpointId: string; fields: string[] }[] = [];
 
   for (const tc of testcases) {
     if (!tc.executability.executable) {
       nonExecutable.push({ tcId: tc.row.tcId, reason: tc.executability.reason });
       continue;
     }
-    const endpoint = registry.byApiName.get(tc.row.apiName);
-    if (!endpoint) {
+
+    // Resolution is the single source of truth for which endpoint (and
+    // therefore which URL) a row builds against — always the registry's
+    // canonical definition, never re-derived or guessed from row text. An
+    // exact "API Name" match wins; a normalized fallback is used only when
+    // it's unambiguous. Anything else is a build error, reported per row,
+    // never silently mapped to the wrong endpoint.
+    const resolution = resolveEndpoint(registry, tc.row.apiName);
+    if (resolution.status === "not_found") {
       unresolved.push({
         tcId: tc.row.tcId,
         reason: `no registry endpoint matches API Name "${tc.row.apiName}"`,
       });
       continue;
     }
+    if (resolution.status === "ambiguous") {
+      unresolved.push({
+        tcId: tc.row.tcId,
+        reason: `API Name "${tc.row.apiName}" matches multiple registry endpoints (${resolution.candidates
+          .map((c) => c.id)
+          .join(", ")}) after normalization — cannot pick one without ambiguity`,
+      });
+      continue;
+    }
+    const endpoint = resolution.endpoint;
+
+    if (tc.row.requestBody.trim().length > 0) {
+      try {
+        const parsedBody = JSON.parse(tc.row.requestBody);
+        const unknownFields = findUnknownBodyFields(parsedBody, endpoint);
+        if (unknownFields.length > 0) {
+          bodyFieldWarnings.push({ tcId: tc.row.tcId, endpointId: endpoint.id, fields: unknownFields });
+        }
+      } catch {
+        // Invalid JSON is already caught as a critical finding by
+        // collection-validator's syntactic check on the built item.
+      }
+    }
+
     built.push({ row: tc.row, item: buildRequestItem(tc.row, endpoint, vars, config) });
   }
 
@@ -103,5 +138,5 @@ export function buildCollection(
     item: buildFolders(built),
   };
 
-  return { collection, usedVariables: vars.usedVariables(), unresolved, nonExecutable };
+  return { collection, usedVariables: vars.usedVariables(), unresolved, nonExecutable, bodyFieldWarnings };
 }

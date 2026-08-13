@@ -72,6 +72,46 @@ using the evidence classification above to justify it:
     documents that it calls out to another internal/external API on the
     caller's behalf; otherwise `NOT_APPLICABLE`.
 
+## Injection & input-validation depth (CRITICAL-tier endpoints only)
+
+Runs only when [[contract-analysis]]'s risk classification assigned
+CRITICAL — never blanket-applied to every string field on every endpoint
+(that's exactly the drift [[format-testing]] explicitly refuses to own).
+For each field the risk-signal extraction flagged as credential/identity/
+financial (e.g. `username`, `password`, `email`, `card_number`, any field a
+login/lookup/search endpoint uses to build a backend query or match a
+record), generate:
+
+- One SQLi-shaped payload (e.g. `' OR '1'='1`, `'; DROP TABLE users;--`) —
+  assert the *documented* safe behavior only (400/401/422 or a generic
+  auth-failure response), never assert that an injection "was blocked" as a
+  security claim; that's exploit confirmation, out of scope per Hard limits
+  below.
+- One NoSQLi/operator-injection-shaped payload if the field is a JSON body
+  value that could plausibly reach a document-store query (e.g. `{"$ne":
+  null}` in place of a string value) — only when the service's storage
+  layer is unknown, still include it, since the *request* is what's being
+  tested, not the backend implementation.
+- One parameter-tampering case per identifier field the endpoint trusts to
+  select a record (e.g. swapping a `user_id`/`account_id` path or body value
+  for a syntactically valid but different value) — this overlaps BOLA
+  above; file it under BOLA if a resource-id param already covers it, add
+  here only for identifier fields BOLA doesn't reach (e.g. an identifier
+  inside the request body rather than the path).
+- Full input-validation sweep on every credential/identity field already
+  covered generically by [[data-type-testing]]/[[boundary-testing]]/
+  [[format-testing]] — reference those scenarios rather than duplicating,
+  but confirm none were skipped for this field just because the field
+  wasn't otherwise interesting (a `password` field with no documented
+  minLength/maxLength/pattern still gets empty-string, oversized-string, and
+  null-byte/control-character cases, since credential fields carry security
+  weight independent of whether the contract documents a format rule).
+
+Never invent a payload style beyond standard SQLi/NoSQLi/parameter-tampering
+shapes; never target a field with no risk signal just because it's
+CRITICAL-tier — the tier gates *which fields* get this depth, not *every*
+field on that endpoint.
+
 ## Hard limits
 
 - Never claim a vulnerability exists — this skill designs *test scenarios*,

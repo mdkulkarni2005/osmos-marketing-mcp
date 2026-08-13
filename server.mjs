@@ -13,6 +13,7 @@ import {
   getExecutionResultsTool,
   reconcileResultsTool,
   updateWorkbookTool,
+  generateVisualizerTool,
 } from "./dist/execution/mcp-adapters.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -392,6 +393,13 @@ server.tool(
   "Re-runs TC_ID reconciliation against a prior execution-results.json without executing anything — for re-applying results after a manual workbook fix.",
   { ...buildPathArgs, outDir: z.string().optional() },
   async (args) => ({ content: [{ type: "text", text: JSON.stringify(await reconcileResultsTool(args), null, 2) }] })
+);
+
+server.tool(
+  "postman_generate_visualizer",
+  "Generates a self-contained, pannable/zoomable HTML graph (Endpoint -> TC Type -> Test Case, plus derived field nodes where scenario text names one) from the SAME testcase workbook + registry the Postman pipeline reads. No credentials, no execution, offline-viewable in any browser.",
+  { ...buildPathArgs, visualizerPath: z.string().optional().describe("Where to write the HTML file. Defaults to generated/reports/testcase-graph.html.") },
+  async (args) => ({ content: [{ type: "text", text: JSON.stringify(await generateVisualizerTool(args), null, 2) }] })
 );
 
 server.tool(

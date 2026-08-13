@@ -50,6 +50,48 @@ sub-documents whenever they conflict.
    `APPLICABLE`, `NOT_APPLICABLE`, or `NOT_DOCUMENTED` against the model from
    step 2. Do not run generation logic for a dimension marked
    `NOT_APPLICABLE` or `NOT_DOCUMENTED`.
+3.5. **Scope budget** — before generating anything, compute an expected
+   scenario band from the step-2 model, not from ambition:
+   - 1 functional (happy path) per endpoint.
+   - Per field: 1 required-missing (if required), 1 type-mismatch (if a type
+     is documented), 1 boundary pair per documented numeric/string/array
+     limit (not one per limit *and* one per near-limit — see
+     [[boundary-testing]]'s own caps), 1 enum-invalid set (all valid values
+     count as *one* enum dimension entry, not one scenario per value — see
+     [[enum-testing]]), 1 format-invalid (if a format is documented).
+   - Per documented dependency rule: 2 (satisfied + violated).
+   - Per related endpoint: workflow scenarios per [[workflow-testing]]'s own
+     scope, not one per possible ordering.
+   - Robustness/concurrency/versioning: 1 scenario per applicable dimension
+     unless the contract documents more than one distinct case.
+   - **Security is budgeted separately, by [[contract-analysis]]'s risk
+     tier, not by field count.** A low-field-count endpoint is not a
+     low-risk endpoint — a 2-field login call is exactly the case that needs
+     the *most* security depth despite having almost nothing to say about
+     functional/boundary/type coverage. Use:
+     - STANDARD tier: 1 scenario per applicable OWASP item, as today.
+     - ELEVATED tier: the STANDARD set, plus BOLA/BFLA scoping checks are
+       mandatory (not skipped even if the contract doesn't spell out
+       scoping — auth-gated mutation implies it), plus one authorization-
+       boundary case per distinct role/scope signal found.
+     - CRITICAL tier: the ELEVATED set, plus [[security-testing]]'s
+       injection/input-validation-depth checklist runs for every
+       credential/identity/financial field found by the risk-signal
+       extraction — this is where SQLi-shaped, NoSQLi-shaped, and
+       parameter-tampering payloads belong, scoped to fields that plausibly
+       reach a backend query/interpreter, never applied blanket to every
+       string field on every endpoint.
+   These two budgets are independent axes, not summed into one number: a
+   CRITICAL 2-field login endpoint can legitimately land at ~4-6 functional/
+   negative scenarios *and* 15-25 security scenarios — that's not runaway
+   generation, that's the security budget doing its job. A STANDARD 2-field
+   endpoint landing at 15-25 *security* scenarios, or a CRITICAL endpoint
+   generating 15 near-duplicate *boundary* variations on a field with one
+   documented limit, are both still overflow — cut those, not the risk-
+   appropriate security depth.
+   If a simple, STANDARD-tier endpoint's non-security scenario count is
+   trending toward 50+, that's drifted into inventing variations the
+   contract doesn't ask for — stop and re-check step 2, not step 4.
 4. **Generate scenarios per applicable dimension**, using the matching
    sub-document. Every scenario is emitted in the shape defined in
    [[output-schema]]. Whenever a dimension document reaches a field that
@@ -94,6 +136,14 @@ sub-documents whenever they conflict.
   one.
 - **The quality gate (below) runs once, at the end, as a checklist.** A
   failed box gets a targeted fix, never a full restart of the pipeline.
+- **The step-3.5 scope budget is a running check, not a post-hoc one.** If
+  the count for an endpoint is already well past its band mid-generation,
+  stop generating for that endpoint and go back to prioritization/dedup
+  before continuing — don't finish the full 36-dimension sweep first and
+  trim afterward. A small documented endpoint (e.g. a login/lookup call
+  with 2-3 fields) producing hundreds of scenarios is not thoroughness, it's
+  the discipline failing; cut to the highest-priority representative per
+  (field, dimension) and move on.
 
 ## The 36 test dimensions
 
@@ -153,7 +203,9 @@ structure applied once per endpoint instead of held until every endpoint
 finishes.
 
 1. **Contract Summary** — endpoint, method, path, params, body shape,
-   responses, what's documented vs not, in plain language.
+   responses, what's documented vs not, in plain language, plus the
+   [[contract-analysis]] risk tier (STANDARD/ELEVATED/CRITICAL) and the
+   specific signal(s) that drove it.
 2. **Test Dimension Applicability** — table of all 36 dimensions with
    APPLICABLE / NOT_APPLICABLE / NOT_DOCUMENTED and a one-line reason.
 3. **Scenario Matrix** — every generated scenario in the [[output-schema]]
@@ -204,6 +256,17 @@ is returned:
 - [ ] No invented constraints, enum values, limits, or business rules anywhere in the output
 - [ ] Every `NOT_DOCUMENTED` case is listed in section 6, not silently dropped
 - [ ] Coverage percentages were computed, not asserted
+- [ ] Final scenario count was checked against the step-3.5 scope budget; any
+      overflow was cut to the single highest-priority representative per
+      (field, dimension) rather than left uncut — "more scenarios" is not a
+      quality signal, "one scenario per documented fact" is
+- [ ] [[contract-analysis]]'s risk tier was classified from actual risk
+      signals (never guessed) and recorded with the signal(s) that drove it
+- [ ] If the tier is ELEVATED or CRITICAL, [[security-testing]]'s
+      tier-scaled checklist (mandatory BOLA/BFLA, injection/input-
+      validation depth on flagged fields) was applied in full — a low
+      field-count endpoint did NOT get a shrunk security section just
+      because its functional/boundary scope budget was small
 
 If any box can't be checked, fix the gap or state explicitly why it's out of
 scope (e.g. "no related endpoints exist, so Workflow Matrix is empty by

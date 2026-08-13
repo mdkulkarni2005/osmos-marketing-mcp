@@ -34,14 +34,17 @@ async function main() {
   );
 
   const registry = loadEndpointRegistry();
-  const { collection, usedVariables, unresolved, nonExecutable } = buildCollection(testcases, registry, {
-    collectionName: "OSMOS Marketing API - SPA Regression Suite",
-  });
+  const { collection, usedVariables, unresolved, nonExecutable, bodyFieldWarnings } = buildCollection(
+    testcases,
+    registry,
+    { collectionName: "OSMOS Marketing API - SPA Regression Suite" }
+  );
 
   console.log("\n=== Collection build ===");
   console.log(`Used variables: ${usedVariables.join(", ")}`);
   if (unresolved.length > 0) console.log("Unresolved (build error):", unresolved);
   if (nonExecutable.length > 0) console.log("Non-executable (expected, documented):", nonExecutable);
+  if (bodyFieldWarnings.length > 0) console.log("Body field drift warnings:", bodyFieldWarnings);
 
   const environment = buildEnvironment(usedVariables, {
     serviceName: "OSMOS Marketing API",
@@ -50,7 +53,7 @@ async function main() {
     baseUrl: registry.service.baseUrl,
   });
 
-  const validation = validateCollection(collection, testcases, unresolved, nonExecutable);
+  const validation = validateCollection(collection, testcases, unresolved, nonExecutable, bodyFieldWarnings);
   console.log("\n=== Validation report ===");
   console.log(`Passed: ${validation.passed}`);
   for (const f of validation.findings) {

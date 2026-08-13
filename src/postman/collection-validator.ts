@@ -39,7 +39,8 @@ export function validateCollection(
   collection: PostmanCollection,
   executableTestcases: ExecutableTestcase[],
   unresolved: { tcId: string; reason: string }[],
-  nonExecutable: { tcId: string; reason: string }[]
+  nonExecutable: { tcId: string; reason: string }[],
+  bodyFieldWarnings: { tcId: string; endpointId: string; fields: string[] }[] = []
 ): ValidationReport {
   const findings: ValidationFinding[] = [];
   const items = flattenItems(collection.item);
@@ -134,6 +135,18 @@ export function validateCollection(
     if (!seenTcIds.has(tcId)) {
       findings.push({ severity: "critical", tcId, message: "Executable testcase has no corresponding request." });
     }
+  }
+
+  // A body field the resolved endpoint's schema doesn't document — likely
+  // drift from the real contract (typo, copy-paste from another endpoint).
+  // Warning, not critical: a Negative-type row may deliberately send a
+  // forbidden/unexpected field, which is a legitimate test, not a defect.
+  for (const b of bodyFieldWarnings) {
+    findings.push({
+      severity: "warning",
+      tcId: b.tcId,
+      message: `Request body has field(s) not in ${b.endpointId}'s documented schema: ${b.fields.join(", ")}. Confirm this is an intentional negative-test field, not drift.`,
+    });
   }
 
   for (const tc of executableTestcases) {

@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readTestcaseWorkbook } from "../postman/workbook-reader.js";
+import { generateVisualizer } from "../postman/generate-visualizer.js";
 import { runExecution } from "./runner.js";
 import { runPreflight } from "./preflight.js";
 import { reconcile } from "../reconciliation/testcase-mapper.js";
@@ -25,6 +26,7 @@ export const DEFAULT_PATHS = {
   collectionPath: path.join(ROOT, "generated", "collections", "OSMOS-SPA-Regression.postman_collection.json"),
   environmentPath: path.join(ROOT, "generated", "environments", "OSMOS-SPA-Regression.postman_environment.json"),
   outDir: path.join(ROOT, "generated", "execution"),
+  visualizerPath: path.join(ROOT, "generated", "reports", "testcase-graph.html"),
 };
 
 export interface BuildArgs {
@@ -205,6 +207,24 @@ export async function updateWorkbookTool(args: UpdateWorkbookArgs) {
     updatedRows: updateResult.updatedRows.length,
     skipped: updateResult.skipped,
   };
+}
+
+export interface GenerateVisualizerArgs extends BuildArgs {
+  visualizerPath?: string;
+}
+
+/**
+ * postman_generate_visualizer — reads the same workbook + registry the
+ * Postman pipeline reads (never a second, drifting data source) and writes
+ * a self-contained, pannable/zoomable HTML graph of Endpoint -> TC Type ->
+ * Test Case (-> derived field, where the scenario text names one) to
+ * generated/reports/. No credentials, no network, no execution.
+ */
+export async function generateVisualizerTool(args: GenerateVisualizerArgs) {
+  const paths = resolvePaths(args);
+  const outPath = args.visualizerPath ?? DEFAULT_PATHS.visualizerPath;
+  const result = await generateVisualizer(paths.workbookPath, outPath);
+  return { visualizerPath: result.outPath, nodeCount: result.nodeCount };
 }
 
 function countRequests(collection: { item: unknown[] }): number {
